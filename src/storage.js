@@ -10,6 +10,7 @@ export const normalizeState = (state) => {
   const players = Array.isArray(state?.players) ? state.players : [];
   const assignments = Array.isArray(state?.assignments) ? state.assignments : [];
   const roleBudgets = state?.strategy?.roleBudgets || {};
+  const rawRoleTargets = state?.strategy?.roleTargets || {};
   const normalizedAssignments = setup === 'mantra' ? assignments.map((assignment) => {
     if (!['P', 'D'].includes(assignment.budgetRole)) return assignment;
     const player = players.find((entry) => entry.id === assignment.playerId);
@@ -30,6 +31,13 @@ export const normalizeState = (state) => {
     delete migrated.P; delete migrated.D;
     normalizedBudgets = Object.fromEntries(rules.roles.filter((role) => migrated[role]).map((role) => [role, migrated[role]]));
   }
+  const roleTargets = Object.fromEntries(rules.roles.map((role) => [role, (Array.isArray(rawRoleTargets[role]) ? rawRoleTargets[role] : []).map((band, index) => ({
+    id: String(band?.id || `${role}-${index + 1}`),
+    label: String(band?.label || 'Fascia target'),
+    min: Number(band?.min) || 0,
+    max: Number(band?.max) || 0,
+    players: String(band?.players || ''),
+  }))]));
   return {
     ...state,
     setup,
@@ -39,7 +47,7 @@ export const normalizeState = (state) => {
     players,
     assignments: normalizedAssignments,
     classicSlots: setup === 'classic' ? { ...rules.slots } : null,
-    strategy: { ...(state?.strategy || {}), roleBudgets: normalizedBudgets },
+    strategy: { ...(state?.strategy || {}), roleBudgets: normalizedBudgets, roleTargets },
   };
 };
 

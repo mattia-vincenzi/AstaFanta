@@ -4,7 +4,7 @@ import { exportState, importState, loadState, saveState } from '../src/storage.j
 
 test('state survives JSON export and import', () => {
   const state = { teams: [], players: [], assignments: [{ playerId: '1', teamId: 'team-1', price: 12, budgetRole: 'M' }], strategy: {} };
-  assert.deepEqual(importState(exportState(state)), { ...state, setup: 'mantra', classicSlots: null, strategy: { roleBudgets: {} } });
+  assert.deepEqual(importState(exportState(state)), { ...state, setup: 'mantra', classicSlots: null, strategy: { roleBudgets: {}, roleTargets: Object.fromEntries(['Por', 'Dd', 'Ds', 'Dc', 'B', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, []])) } });
 });
 
 test('invalid stored JSON returns the fallback state', () => {
@@ -17,7 +17,7 @@ test('save writes a reloadable state', () => {
   const storage = { getItem: () => saved, setItem: (_key, value) => { saved = value; } };
   const state = { teams: [], players: [], assignments: [], strategy: { ownTeam: 'Io' } };
   saveState(storage, state);
-  assert.deepEqual(loadState(storage, {}), { ...state, setup: 'mantra', classicSlots: null, strategy: { ...state.strategy, roleBudgets: {} } });
+  assert.deepEqual(loadState(storage, {}), { ...state, setup: 'mantra', classicSlots: null, strategy: { ...state.strategy, roleBudgets: {}, roleTargets: Object.fromEntries(['Por', 'Dd', 'Ds', 'Dc', 'B', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, []])) } });
 });
 
 test('legacy backups without a setup are migrated to Mantra', () => {
@@ -48,4 +48,13 @@ test('legacy Mantra aggregate roles migrate to real catalogue roles', () => {
   assert.deepEqual(restored.strategy.roleBudgets.Dd, legacy.strategy.roleBudgets.D);
   assert.equal(restored.strategy.roleBudgets.P, undefined);
   assert.equal(restored.strategy.roleBudgets.D, undefined);
+});
+
+test('target player bands survive backup export and import', () => {
+  const state = {
+    setup: 'mantra', teams: [{ id: 'team-1', budget: 1000, rosterSize: 28 }], players: [], assignments: [],
+    strategy: { roleBudgets: { M: { slots: 3, min: 10, target: 40, max: 70 } }, roleTargets: { M: [{ id: 'm-1', label: 'Titolari', min: 10, max: 35, players: 'Rossi\nBianchi' }] } },
+  };
+  const restored = importState(exportState(state));
+  assert.deepEqual(restored.strategy.roleTargets.M, [{ id: 'm-1', label: 'Titolari', min: 10, max: 35, players: 'Rossi\nBianchi' }]);
 });

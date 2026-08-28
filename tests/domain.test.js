@@ -38,7 +38,7 @@ test('role dashboard calculates own spending and remaining target', () => {
   const state = createInitialState(players);
   state.strategy.roleBudgets.M = { slots: 3, min: 0, target: 60, max: 80 };
   state.assignments = [{ playerId: '1', teamId: 'team-1', price: 40, budgetRole: 'M' }];
-  assert.deepEqual(ownRoleSummaries(state).find((item) => item.role === 'M'), { role: 'M', spent: 40, target: 60, remaining: 20, maximum: 80 });
+  assert.deepEqual(ownRoleSummaries(state).find((item) => item.role === 'M'), { role: 'M', spent: 40, players: 1, slots: 3, minimum: 0, target: 60, remaining: 20, maximum: 80, targetBands: [] });
 });
 
 test('opponent dashboard excludes own team and sorts by remaining credits', () => {
@@ -94,6 +94,11 @@ test('Classic strategy includes fixed slots and editable budget thresholds for e
   });
 });
 
+test('strategy initializes configurable target bands for every active role', () => {
+  const state = createSetup('mantra', [], {});
+  assert.deepEqual(state.strategy.roleTargets, Object.fromEntries(setupRules('mantra').roles.map((role) => [role, []])));
+});
+
 test('only Mantra strategy roles can be added and removed', () => {
   let mantra = createSetup('mantra', [], {});
   mantra = removeStrategyRole(mantra, 'B');
@@ -121,6 +126,16 @@ test('classic role summaries report spending and fixed slot occupancy', () => {
     role: 'P', spent: 20, players: 2, slots: 3, slotsRemaining: 1, complete: false,
   });
   assert.deepEqual(ownRoleSummaries(state).map(({ role }) => role), ['P', 'D', 'C', 'A']);
+});
+
+test('classic own role summaries include configured budget limits', () => {
+  const state = createSetup('classic', [], {});
+  state.strategy.roleBudgets.P = { slots: 3, min: 5, target: 20, max: 40 };
+  state.assignments = [{ playerId: 'p1', teamId: 'team-1', price: 32, budgetRole: 'P' }];
+  assert.deepEqual(ownRoleSummaries(state)[0], {
+    role: 'P', spent: 32, players: 1, slots: 3, slotsRemaining: 2, complete: false,
+    minimum: 5, target: 20, maximum: 40, targetBands: [],
+  });
 });
 
 test('resizing a custom Classic league preserves its budget and roster rules', () => {

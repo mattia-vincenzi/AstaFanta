@@ -53,15 +53,40 @@ test('auction suggests the first compatible budget role', () => {
 });
 
 test('Classic dashboard cards describe fixed slot occupancy', () => {
-  assert.deepEqual(roleCardModel('classic', { role: 'P', spent: 20, players: 2, slots: 3, slotsRemaining: 1, complete: false }), {
-    role: 'P', value: '20 crediti', detail: '2/3 acquistati', supporting: '1 slot libero', progress: 67, complete: false,
+  assert.deepEqual(roleCardModel('classic', { role: 'P', spent: 20, players: 2, slots: 3, slotsRemaining: 1, complete: false, maximum: 40, targetBands: [] }), {
+    role: 'P', value: '20 / 40', detail: '2/3 acquistati · 20 crediti al massimo', supporting: '1 slot libero', progress: 50, complete: false, budgetStatus: 'within',
   });
 });
 
-test('Mantra dashboard cards retain strategic credit targets', () => {
-  assert.deepEqual(roleCardModel('mantra', { role: 'M', spent: 40, target: 60, remaining: 20, maximum: 80 }), {
-    role: 'M', value: '40 / 60', detail: '20 crediti al target', supporting: '', progress: 67, complete: false,
+test('role budget status turns warning at eighty percent and over above maximum', () => {
+  assert.equal(roleCardModel('classic', { role: 'P', spent: 79, players: 1, slots: 3, slotsRemaining: 2, complete: false, maximum: 100 }).budgetStatus, 'within');
+  assert.equal(roleCardModel('classic', { role: 'P', spent: 80, players: 1, slots: 3, slotsRemaining: 2, complete: false, maximum: 100 }).budgetStatus, 'warning');
+  assert.equal(roleCardModel('mantra', { role: 'Por', spent: 100, players: 1, slots: 3, maximum: 100 }).budgetStatus, 'warning');
+  assert.equal(roleCardModel('classic', { role: 'P', spent: 101, players: 1, slots: 3, slotsRemaining: 2, complete: false, maximum: 100 }).budgetStatus, 'over');
+});
+
+test('Mantra dashboard cards use the configured maximum and show player count', () => {
+  assert.deepEqual(roleCardModel('mantra', { role: 'M', spent: 40, target: 60, remaining: 20, maximum: 80, players: 2, slots: 3 }), {
+    role: 'M', value: '40 / 80', detail: '2 giocatori · 40 crediti al massimo', supporting: '2/3 slot', progress: 50, complete: false, budgetStatus: 'within',
   });
+});
+
+test('Mantra dashboard cards surface configured target bands', () => {
+  assert.equal(roleCardModel('mantra', { role: 'M', spent: 0, target: 40, remaining: 40, players: 0, slots: 3, targetBands: [{ label: 'Titolari', min: 10, max: 35 }] }).supporting, 'Titolari 10-35');
+  assert.equal(roleCardModel('mantra', { role: 'M', spent: 0, target: 0, remaining: 0, players: 0, targetBands: [{ label: '<Top>', min: 1, max: 2 }] }).supporting, '&lt;Top&gt; 1-2');
+});
+
+test('Mantra dashboard cards surface configured minimum and maximum limits', () => {
+  const card = roleCardModel('mantra', { role: 'M', spent: 0, target: 0, remaining: 0, minimum: 15, maximum: 80, players: 0, slots: 0 });
+  assert.equal(card.value, '0 / 80');
+  assert.equal(card.budgetStatus, 'within');
+});
+
+test('Mantra dashboard cards flag spending above the configured maximum', () => {
+  const card = roleCardModel('mantra', { role: 'Por', spent: 50, maximum: 40, players: 2, slots: 3 });
+  assert.equal(card.value, '50 / 40');
+  assert.equal(card.detail, '2 giocatori · 0 crediti al massimo');
+  assert.equal(card.budgetStatus, 'over');
 });
 
 test('Classic assignment excludes a role whose team quota is full', () => {

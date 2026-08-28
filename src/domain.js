@@ -23,7 +23,7 @@ export const createInitialState = (players) => ({
   teams: DEFAULT_TEAMS.map((team) => ({ ...team })),
   assignments: [],
   ownTeamId: 'team-1',
-  strategy: { roleBudgets: structuredClone(DEFAULT_ROLE_BUDGETS), playerNotes: {} },
+  strategy: { roleBudgets: structuredClone(DEFAULT_ROLE_BUDGETS), roleTargets: Object.fromEntries(MANTRA_ROLES.map((role) => [role, []])), playerNotes: {} },
 });
 
 export const createSetup = (setup, players, options = {}) => {
@@ -40,7 +40,7 @@ export const createSetup = (setup, players, options = {}) => {
     setup: rules.id,
     teams: Array.from({ length: teamCount }, (_, index) => ({ id: `team-${index + 1}`, name: index === 0 && options.ownTeamName ? options.ownTeamName : `Squadra ${index + 1}`, budget, rosterSize: rules.rosterSize })),
     classicSlots: classic ? { ...CLASSIC_SLOTS } : null,
-    strategy: { ...initial.strategy, roleBudgets },
+    strategy: { ...initial.strategy, roleBudgets: roleBudgets, roleTargets: Object.fromEntries(rules.roles.map((role) => [role, []])) },
   };
 };
 
@@ -49,14 +49,16 @@ export const addStrategyRole = (state, role) => {
   if (!setupRules('mantra').roles.includes(role)) throw new Error('Ruolo Mantra non valido');
   if (state.strategy.roleBudgets[role]) return state;
   const budget = state.teams.find((team) => team.id === state.ownTeamId)?.budget ?? setupRules('mantra').defaultBudget;
-  return { ...state, strategy: { ...state.strategy, roleBudgets: { ...state.strategy.roleBudgets, [role]: { slots: 0, min: 0, target: 0, max: budget } } } };
+  return { ...state, strategy: { ...state.strategy, roleBudgets: { ...state.strategy.roleBudgets, [role]: { slots: 0, min: 0, target: 0, max: budget } }, roleTargets: { ...(state.strategy.roleTargets || {}), [role]: [] } } };
 };
 
 export const removeStrategyRole = (state, role) => {
   if (state.setup === 'classic') throw new Error('I ruoli Classic sono fissi');
   const roleBudgets = { ...state.strategy.roleBudgets };
   delete roleBudgets[role];
-  return { ...state, strategy: { ...state.strategy, roleBudgets } };
+  const roleTargets = { ...(state.strategy.roleTargets || {}) };
+  delete roleTargets[role];
+  return { ...state, strategy: { ...state.strategy, roleBudgets, roleTargets } };
 };
 
 export const canAssignClassic = (state, assignment) => {
@@ -130,10 +132,11 @@ export const strategyWarnings = (state) => Object.entries(state.strategy?.roleBu
 
 const mantraRoleSummaries = (state) => Object.entries(state.strategy?.roleBudgets || {})
   .map(([role, budget]) => {
-    const spent = state.assignments.filter((item) => item.teamId === state.ownTeamId && item.budgetRole === role)
+    const assignments = state.assignments.filter((item) => item.teamId === state.ownTeamId && item.budgetRole === role);
+    const spent = assignments
       .reduce((total, item) => total + item.price, 0);
     const target = Number(budget.target) || 0;
-    return { role, spent, target, remaining: target - spent, maximum: Number(budget.max) || 0 };
+    return { role, spent, players: assignments.length, slots: Number(budget.slots) || 0, minimum: Number(budget.min) || 0, target, remaining: target - spent, maximum: Number(budget.max) || 0, targetBands: state.strategy?.roleTargets?.[role] || [] };
   });
 
 export const roleSummaries = (state, teamId) => {
@@ -152,7 +155,19 @@ export const roleSummaries = (state, teamId) => {
   });
 };
 
-export const ownRoleSummaries = (state) => state.setup === 'classic' ? roleSummaries(state, state.ownTeamId) : mantraRoleSummaries(state);
+export const ownRoleSummaries = (state) => {
+  if (state.setup !== 'classic') return mantraRoleSummaries(state);
+  return roleSummaries(state, state.ownTeamId).map((summary) => {
+    const budget = state.strategy?.roleBudgets?.[summary.role] || {};
+    return {
+      ...summary,
+      minimum: Number(budget.min) || 0,
+      target: Number(budget.target) || 0,
+      maximum: Number(budget.max) || 0,
+      targetBands: state.strategy?.roleTargets?.[summary.role] || [],
+    };
+  });
+};
 
 export const opponentSummaries = (state) => state.teams
   .filter((team) => team.id !== state.ownTeamId)

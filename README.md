@@ -1,32 +1,63 @@
-# Tool Asta Fantacalcio
+# ⚽ Tool Asta Fantacalcio
 
-Web app locale per gestire un'asta Mantra o Classic. La modalità si sceglie all'avvio di una nuova asta.
+### L’asta sotto controllo. Credito dopo credito.
 
-- Mantra: default 10 squadre, 1000 crediti e rosa da 28 giocatori.
-- Classic: default 8 squadre, 500 crediti e rosa fissa da 3 P, 8 D, 8 C e 6 A.
+Web app locale per gestire un’asta **Mantra o Classic** in modo rapido: cerca i giocatori, registra gli acquisti e controlla budget, rose e strategia da un’unica dashboard.
 
-Numero di squadre e crediti iniziali sono modificabili per entrambe le modalità. Dopo la creazione, il numero dei partecipanti si gestisce nel tab **Squadre**.
+![Dashboard Mantra con crediti disponibili e spesa per ruolo](docs/screenshots/dashboard-mantra.png)
 
-In Mantra catalogo, asta e filtri usano tutti i ruoli reali (`Por`, `Dd`, `Ds`, `Dc`, `B`, `E`, `M`, `C`, `W`, `T`, `A`, `Pc`). Nella Strategia Mantra puoi aggiungere o rimuovere i ruoli da pianificare. In Classic i ruoli `P/D/C/A` restano fissi, ma puoi configurare minimo, obiettivo e massimo di budget per ciascuno.
+## Perché usarlo
 
-## Avvio
+- **Asta veloce** — ricerca, filtri per ruolo e assegnazione immediata.
+- **Mantra e Classic** — ruoli, rose e vincoli specifici per ogni modalità.
+- **Budget visivo** — card verdi, gialle o rosse in base ai massimali configurati.
+- **Strategia personale** — budget per ruolo e giocatori target organizzati per fascia.
+- **Rose sempre aggiornate** — crediti, slot e acquisti di tutte le squadre.
+- **Local-first** — nessun account: i dati restano nel browser e possono essere esportati.
 
-Non richiede installazione di pacchetti. Dalla cartella del progetto:
+## Pensato per l’asta live
+
+<table>
+  <tr>
+    <td width="34%" valign="top">
+      <img src="docs/screenshots/detail-crediti.png" alt="Riepilogo dei crediti disponibili e degli slot liberi">
+      <br><strong>Tutto in un numero.</strong><br>
+      Crediti, spesa e slot liberi restano visibili mentre l’asta corre.
+    </td>
+    <td width="66%" valign="top">
+      <img src="docs/screenshots/detail-budget-ruoli.png" alt="Card della spesa configurata per ogni ruolo Mantra">
+      <br><strong>Ogni reparto sotto controllo.</strong><br>
+      La dashboard confronta la spesa con i massimali configurati e conta gli acquisti per ruolo.
+    </td>
+  </tr>
+</table>
+
+## Avvio rapido
+
+Non servono dipendenze. Dalla cartella del progetto:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Apri `http://localhost:8080` nel browser. Non aprire `index.html` con doppio clic: il browser potrebbe bloccare il caricamento del catalogo JSON.
+Apri [http://localhost:8080](http://localhost:8080) e scegli la modalità di gioco.
 
-## Dati e backup
+> Non aprire direttamente `index.html`: il browser potrebbe bloccare il caricamento dei cataloghi JSON.
 
-I cataloghi iniziali sono `src/players.json` per Mantra e `src/players-classic.json` per Classic. Entrambi possono essere modificati direttamente dalla scheda **Catalogo**. Ogni modifica, assegnazione e impostazione strategica è salvata automaticamente nel browser. Usa **Esporta backup** prima dell'asta e **Importa backup** per ripristinare lo stato in un altro browser.
+## Modalità
 
-Le quotazioni Classic provengono da `Quotazioni_Fantacalcio_Stagione_2026_27.xlsx`, usando le colonne `R` per il ruolo e `FVM` per il valore. Il file sorgente non viene incluso nel repository.
+| Mantra | Classic |
+| --- | --- |
+| Ruoli reali configurabili | Quote fisse `3P · 8D · 8C · 6A` |
+| Default: 10 squadre, 1000 crediti | Default: 8 squadre, 500 crediti |
+| Rosa e budget personalizzabili | Rosa fissa da 25 giocatori |
 
-## Test
+## Backup e test
+
+Le modifiche vengono salvate automaticamente nel browser. Usa **Esporta backup** per mettere al sicuro l’asta e **Importa backup** per riprenderla su un altro browser.
 
 ```bash
 npm test
 ```
+
+I cataloghi iniziali si trovano in `src/players.json` e `src/players-classic.json` e possono essere modificati anche dalla sezione **Catalogo** dell’app.

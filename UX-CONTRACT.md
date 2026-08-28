@@ -17,9 +17,13 @@
 ## Squadre e strategia
 
 - Il numero di squadre si modifica soltanto nel tab Squadre; non si possono rimuovere squadre con acquisti.
+- Il nome di una squadra è modificabile soltanto nel tab Squadre; in Strategia si può selezionare la propria squadra ma non rinominarla.
 - La Strategia modifica soltanto la squadra impostata come propria.
+- Per ogni ruolo la Strategia permette di creare fasce target configurabili con nome, intervallo di crediti e lista libera di giocatori (uno per riga); le fasce sono persistite nei backup.
+- La dashboard Mantra mostra, per ogni ruolo, anche il numero aggiornato di giocatori acquistati.
 - In Classic la rosa è sempre 25 con quote 3P/8D/8C/6A; tali valori non sono editabili.
 - In Classic minimo, obiettivo e massimo di budget sono configurabili per `P/D/C/A`.
+- In entrambe le modalità le card ruolo usano il massimo configurato come denominatore: sono verdi sotto l'80%, gialle dall'80% al 100% incluso e rosse quando la spesa supera il massimo.
 - In Mantra slot e soglie di budget sono configurabili per ogni ruolo reale; i ruoli possono essere aggiunti o rimossi dalla Strategia.
 
 ## Azioni distruttive ed errori
