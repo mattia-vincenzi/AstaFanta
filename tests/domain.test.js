@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assignPlayer, canAssignClassic, createInitialState, createSetup, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, teamSummary } from '../src/domain.js';
+import { assignPlayer, canAssignClassic, createInitialState, createSetup, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, roleSummaries, setupRules, teamSummary, validatePlayer } from '../src/domain.js';
 
 const players = [{ id: '1', name: 'Rossi', roles: ['M', 'C'], team: 'Roma', qt: 10, fvm: 20 }];
 
@@ -66,4 +66,46 @@ test('classic rejects a fourth goalkeeper for the same team', () => {
   const state = createSetup('classic', [{ id: 'p4', roles: ['P'] }], {});
   state.assignments = [1, 2, 3].map((number) => ({ playerId: `p${number}`, teamId: 'team-1', price: 1, budgetRole: 'P' }));
   assert.equal(canAssignClassic(state, { playerId: 'p4', teamId: 'team-1', budgetRole: 'P' }), false);
+});
+
+test('setup rules expose the complete Classic and Mantra contracts', () => {
+  assert.deepEqual(setupRules('classic'), {
+    id: 'classic', label: 'Classic', roles: ['P', 'D', 'C', 'A'], slots: { P: 3, D: 8, C: 8, A: 6 }, defaultTeams: 8, defaultBudget: 500, rosterSize: 25,
+  });
+  assert.deepEqual(setupRules('mantra').roles, ['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc']);
+  assert.equal(setupRules('mantra').defaultTeams, 10);
+  assert.equal(setupRules('mantra').defaultBudget, 1000);
+  assert.equal(setupRules('mantra').rosterSize, 28);
+});
+
+test('classic enforces every positional quota', () => {
+  for (const [role, limit] of Object.entries({ P: 3, D: 8, C: 8, A: 6 })) {
+    const state = createSetup('classic', [{ id: `${role}-next`, roles: [role] }], {});
+    state.assignments = Array.from({ length: limit }, (_, index) => ({ playerId: `${role}-${index}`, teamId: 'team-1', price: 1, budgetRole: role }));
+    assert.throws(() => assignPlayer(state, { playerId: `${role}-next`, teamId: 'team-1', price: 1, budgetRole: role }), /Slot Classic esauriti/);
+  }
+});
+
+test('classic role summaries report spending and fixed slot occupancy', () => {
+  const state = createSetup('classic', [], {});
+  state.assignments = [
+    { playerId: 'p1', teamId: 'team-1', price: 12, budgetRole: 'P' },
+    { playerId: 'p2', teamId: 'team-1', price: 8, budgetRole: 'P' },
+  ];
+  assert.deepEqual(roleSummaries(state, 'team-1')[0], {
+    role: 'P', spent: 20, players: 2, slots: 3, slotsRemaining: 1, complete: false,
+  });
+  assert.deepEqual(ownRoleSummaries(state).map(({ role }) => role), ['P', 'D', 'C', 'A']);
+});
+
+test('resizing a custom Classic league preserves its budget and roster rules', () => {
+  const state = createSetup('classic', [], { teamCount: 8, budget: 650 });
+  const resized = resizeLeague(state, 10);
+  assert.deepEqual(resized.teams.slice(8).map(({ budget, rosterSize }) => [budget, rosterSize]), [[650, 25], [650, 25]]);
+});
+
+test('catalogue player validation follows the active setup roles', () => {
+  assert.deepEqual(validatePlayer('classic', { id: '1', name: 'Rossi', team: 'Roma', roles: ['D'], qt: 1, fvm: 2 }).roles, ['D']);
+  assert.throws(() => validatePlayer('classic', { id: '2', name: 'Verdi', team: 'Roma', roles: ['M'], qt: 1, fvm: 2 }), /Classic/);
+  assert.deepEqual(validatePlayer('mantra', { id: '3', name: 'Neri', team: 'Roma', roles: ['M', 'C'], qt: 1, fvm: 2 }).roles, ['M', 'C']);
 });

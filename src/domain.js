@@ -11,10 +11,14 @@ const DEFAULT_TEAMS = Array.from({ length: 10 }, (_, index) => ({
   rosterSize: 28,
 }));
 
-const defaultTeam = (index) => ({ id: `team-${index}`, name: `Squadra ${index}`, budget: 1000, rosterSize: 28 });
-
 const DEFAULT_ROLE_BUDGETS = Object.fromEntries(['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, { slots: 0, min: 0, target: 0, max: 1000 }]));
 const CLASSIC_SLOTS = { P: 3, D: 8, C: 8, A: 6 };
+const SETUP_RULES = {
+  mantra: { id: 'mantra', label: 'Mantra', roles: ['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'], slots: null, defaultTeams: 10, defaultBudget: 1000, rosterSize: 28 },
+  classic: { id: 'classic', label: 'Classic', roles: ['P', 'D', 'C', 'A'], slots: CLASSIC_SLOTS, defaultTeams: 8, defaultBudget: 500, rosterSize: 25 },
+};
+
+export const setupRules = (setup = 'mantra') => structuredClone(SETUP_RULES[setup] || SETUP_RULES.mantra);
 
 export const allowedBudgetRoles = (player) => Object.entries(ROLE_GROUPS)
   .filter(([, tokens]) => player.roles.some((role) => tokens.includes(role)))
@@ -29,14 +33,14 @@ export const createInitialState = (players) => ({
 });
 
 export const createSetup = (setup, players, options = {}) => {
-  const classic = setup === 'classic';
-  const teamCount = Number(options.teamCount) || (classic ? 8 : 10);
-  const budget = Number(options.budget) || (classic ? 500 : 1000);
-  const rosterSize = classic ? 25 : 28;
+  const rules = setupRules(setup);
+  const classic = rules.id === 'classic';
+  const teamCount = Number(options.teamCount) || rules.defaultTeams;
+  const budget = Number(options.budget) || rules.defaultBudget;
   return {
     ...createInitialState(players),
-    setup: classic ? 'classic' : 'mantra',
-    teams: Array.from({ length: teamCount }, (_, index) => ({ id: `team-${index + 1}`, name: index === 0 && options.ownTeamName ? options.ownTeamName : `Squadra ${index + 1}`, budget, rosterSize })),
+    setup: rules.id,
+    teams: Array.from({ length: teamCount }, (_, index) => ({ id: `team-${index + 1}`, name: index === 0 && options.ownTeamName ? options.ownTeamName : `Squadra ${index + 1}`, budget, rosterSize: rules.rosterSize })),
     classicSlots: classic ? { ...CLASSIC_SLOTS } : null,
   };
 };
@@ -72,10 +76,21 @@ export const resizeLeague = (state, count) => {
     const removed = state.teams.slice(count);
     if (removed.some((team) => state.assignments.some((assignment) => assignment.teamId === team.id))) throw new Error('Non puoi rimuovere squadre con acquisti');
   }
+  const rules = setupRules(state.setup);
+  const leagueBudget = state.teams[0]?.budget ?? rules.defaultBudget;
+  const defaultTeam = (index) => ({ id: `team-${index}`, name: `Squadra ${index}`, budget: leagueBudget, rosterSize: rules.rosterSize });
   const teams = count <= state.teams.length
     ? state.teams.slice(0, count)
     : [...state.teams, ...Array.from({ length: count - state.teams.length }, (_, index) => defaultTeam(state.teams.length + index + 1))];
   return { ...state, teams };
+};
+
+export const validatePlayer = (setup, player) => {
+  const rules = setupRules(setup);
+  const roles = Array.isArray(player.roles) ? player.roles.map((role) => String(role).trim()).filter(Boolean) : [];
+  if (!player.id || !player.name || !player.team || !roles.length) throw new Error('Compila tutti i campi obbligatori');
+  if (roles.some((role) => !rules.roles.includes(role))) throw new Error(`Ruolo non valido per il setup ${rules.label}`);
+  return { ...player, roles };
 };
 
 export const assignPlayer = (state, assignment) => {
@@ -99,13 +114,31 @@ export const strategyWarnings = (state) => Object.entries(state.strategy?.roleBu
       : [];
   });
 
-export const ownRoleSummaries = (state) => Object.entries(state.strategy?.roleBudgets || {})
+const mantraRoleSummaries = (state) => Object.entries(state.strategy?.roleBudgets || {})
   .map(([role, budget]) => {
     const spent = state.assignments.filter((item) => item.teamId === state.ownTeamId && item.budgetRole === role)
       .reduce((total, item) => total + item.price, 0);
     const target = Number(budget.target) || 0;
     return { role, spent, target, remaining: target - spent, maximum: Number(budget.max) || 0 };
   });
+
+export const roleSummaries = (state, teamId) => {
+  const rules = setupRules(state.setup);
+  return rules.roles.map((role) => {
+    const assignments = state.assignments.filter((item) => item.teamId === teamId && item.budgetRole === role);
+    const slots = state.setup === 'classic' ? Number(state.classicSlots?.[role] ?? rules.slots?.[role] ?? 0) : Number(state.strategy?.roleBudgets?.[role]?.slots ?? 0);
+    return {
+      role,
+      spent: assignments.reduce((total, item) => total + item.price, 0),
+      players: assignments.length,
+      slots,
+      slotsRemaining: Math.max(0, slots - assignments.length),
+      complete: slots > 0 && assignments.length >= slots,
+    };
+  });
+};
+
+export const ownRoleSummaries = (state) => state.setup === 'classic' ? roleSummaries(state, state.ownTeamId) : mantraRoleSummaries(state);
 
 export const opponentSummaries = (state) => state.teams
   .filter((team) => team.id !== state.ownTeamId)
