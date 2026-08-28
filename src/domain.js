@@ -14,6 +14,7 @@ const DEFAULT_TEAMS = Array.from({ length: 10 }, (_, index) => ({
 const defaultTeam = (index) => ({ id: `team-${index}`, name: `Squadra ${index}`, budget: 1000, rosterSize: 28 });
 
 const DEFAULT_ROLE_BUDGETS = Object.fromEntries(['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, { slots: 0, min: 0, target: 0, max: 1000 }]));
+const CLASSIC_SLOTS = { P: 3, D: 8, C: 8, A: 6 };
 
 export const allowedBudgetRoles = (player) => Object.entries(ROLE_GROUPS)
   .filter(([, tokens]) => player.roles.some((role) => tokens.includes(role)))
@@ -26,6 +27,25 @@ export const createInitialState = (players) => ({
   ownTeamId: 'team-1',
   strategy: { roleBudgets: structuredClone(DEFAULT_ROLE_BUDGETS), playerNotes: {} },
 });
+
+export const createSetup = (setup, players, options = {}) => {
+  const classic = setup === 'classic';
+  const teamCount = Number(options.teamCount) || (classic ? 8 : 10);
+  const budget = Number(options.budget) || (classic ? 500 : 1000);
+  const rosterSize = classic ? 25 : 28;
+  return {
+    ...createInitialState(players),
+    setup: classic ? 'classic' : 'mantra',
+    teams: Array.from({ length: teamCount }, (_, index) => ({ id: `team-${index + 1}`, name: index === 0 && options.ownTeamName ? options.ownTeamName : `Squadra ${index + 1}`, budget, rosterSize })),
+    classicSlots: classic ? { ...CLASSIC_SLOTS } : null,
+  };
+};
+
+export const canAssignClassic = (state, assignment) => {
+  const limit = state.classicSlots?.[assignment.budgetRole];
+  if (!limit) return false;
+  return state.assignments.filter((item) => item.teamId === assignment.teamId && item.budgetRole === assignment.budgetRole).length < limit;
+};
 
 export const teamSummary = (state, teamId) => {
   const team = state.teams.find((entry) => entry.id === teamId);
@@ -65,6 +85,7 @@ export const assignPlayer = (state, assignment) => {
   if (!Number.isFinite(assignment.price) || assignment.price <= 0) throw new Error('Prezzo non valido');
   if (state.assignments.some((entry) => entry.playerId === assignment.playerId)) throw new Error('Giocatore già assegnato');
   if (!allowedBudgetRoles(player).includes(assignment.budgetRole)) throw new Error('Ruolo budget non compatibile');
+  if (state.setup === 'classic' && !canAssignClassic(state, assignment)) throw new Error('Slot Classic esauriti per questo ruolo');
   return { ...state, assignments: [...state.assignments, { ...assignment, createdAt: new Date().toISOString() }] };
 };
 

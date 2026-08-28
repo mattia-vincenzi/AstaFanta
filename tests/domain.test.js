@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assignPlayer, createInitialState, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, teamSummary } from '../src/domain.js';
+import { assignPlayer, canAssignClassic, createInitialState, createSetup, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, teamSummary } from '../src/domain.js';
 
 const players = [{ id: '1', name: 'Rossi', roles: ['M', 'C'], team: 'Roma', qt: 10, fvm: 20 }];
 
@@ -52,4 +52,18 @@ test('league resize adds default teams and refuses to remove assigned teams', ()
   assert.equal(resizeLeague(initial, 12).teams.length, 12);
   const assigned = { ...initial, assignments: [{ playerId: '1', teamId: 'team-10', price: 10, budgetRole: 'M' }] };
   assert.throws(() => resizeLeague(assigned, 9), /acquisti/);
+});
+
+test('classic setup defaults to eight teams, 500 credits and 25 slots', () => {
+  const state = createSetup('classic', [], {});
+  assert.equal(state.setup, 'classic');
+  assert.equal(state.teams.length, 8);
+  assert.equal(state.teams[0].budget, 500);
+  assert.equal(state.teams[0].rosterSize, 25);
+});
+
+test('classic rejects a fourth goalkeeper for the same team', () => {
+  const state = createSetup('classic', [{ id: 'p4', roles: ['P'] }], {});
+  state.assignments = [1, 2, 3].map((number) => ({ playerId: `p${number}`, teamId: 'team-1', price: 1, budgetRole: 'P' }));
+  assert.equal(canAssignClassic(state, { playerId: 'p4', teamId: 'team-1', budgetRole: 'P' }), false);
 });
