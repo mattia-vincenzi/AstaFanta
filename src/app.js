@@ -1,11 +1,12 @@
 import players from './players.json' with { type: 'json' };
-import { allowedBudgetRoles, assignPlayer, createInitialState, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, strategyWarnings, teamSummary } from './domain.js';
+import classicPlayers from './players-classic.json' with { type: 'json' };
+import { allowedBudgetRoles, assignPlayer, createSetup, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, strategyWarnings, teamSummary } from './domain.js';
 import { exportState, importState, loadState, saveState } from './storage.js';
 import { filterPlayers, selectedPlayerLabel, suggestedBudgetRole, sortRows } from './render.js';
 
 const root = document.querySelector('#app');
-const freshState = () => createInitialState(players);
-let state = loadState(localStorage, freshState());
+let state = loadState(localStorage, null);
+if (state && !state.setup) state = { ...state, setup: 'mantra' };
 let tab = 'asta';
 let filters = { query: '', role: '', availability: 'free' };
 let selectedPlayerId = '';
@@ -26,6 +27,10 @@ function header() {
 
 function navigation() {
   return `<nav>${[['asta', 'Asta live'], ['squadre', 'Squadre'], ['strategia', 'Strategia'], ['catalogo', 'Catalogo']].map(([id, label]) => `<button class="${tab === id ? 'active' : ''}" data-tab="${id}">${label}</button>`).join('')}</nav>`;
+}
+
+function setupScreen() {
+  return `<main class="setup-screen"><section class="panel"><h1>Crea una nuova asta</h1><p class="muted">Scegli il regolamento prima di iniziare. Potrai cambiarlo solo con Reset.</p><form id="setup-form"><fieldset><legend>Setup</legend><label><input type="radio" name="setup" value="mantra" checked> Mantra — 10 squadre, 1000 crediti, rosa 28</label><label><input type="radio" name="setup" value="classic"> Classic — 8 squadre, 500 crediti, rosa 3P / 8D / 8C / 6A</label></fieldset><label>Numero squadre<input name="teamCount" type="number" min="2" value="10"></label><label>Budget iniziale<input name="budget" type="number" min="1" value="1000"></label><label>Nome della mia squadra<input name="ownTeamName" value="La mia squadra" required></label><button>Crea asta</button></form></section></main>`;
 }
 
 function dashboard() {
@@ -57,7 +62,7 @@ function catalogue() {
   return `<section class="panel"><div class="section-heading"><div><h2>Catalogo modificabile</h2><p class="muted">Aggiungi o correggi giocatori. Gli assegnati non si possono eliminare.</p></div><button data-action="new-player">Aggiungi giocatore</button></div><form id="player-form" class="player-form" hidden><input name="id" placeholder="ID univoco" required><input name="name" placeholder="Nome" required><input name="team" placeholder="Squadra" required><input name="roles" placeholder="Ruoli, es. M/C" required><input name="qt" type="number" placeholder="Qt" value="0"><input name="fvm" type="number" placeholder="FVM" value="0"><button>Salva giocatore</button></form><div class="table-wrap"><table><thead><tr><th>ID</th><th>Nome</th><th>Squadra</th><th>Ruoli</th><th></th></tr></thead><tbody>${state.players.map((p) => `<tr><td>${p.id}</td><td>${escape(p.name)}</td><td>${escape(p.team)}</td><td>${p.roles.join('/')}</td><td><button data-action="edit-player" data-id="${p.id}">Modifica</button>${assignedIds().has(p.id) ? '' : ` <button data-action="delete-player" data-id="${p.id}" class="danger">Elimina</button>`}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 
-function render() { root.innerHTML = `${header()}${navigation()}<main>${tab === 'asta' ? auction() : tab === 'squadre' ? teams() : tab === 'strategia' ? strategy() : catalogue()}</main>`; }
+function render() { root.innerHTML = state ? `${header()}${navigation()}<main>${tab === 'asta' ? auction() : tab === 'squadre' ? teams() : tab === 'strategia' ? strategy() : catalogue()}</main>` : setupScreen(); }
 
 root.addEventListener('click', (event) => {
   const target = event.target;
@@ -80,6 +85,25 @@ root.addEventListener('submit', (event) => {
   event.preventDefault();
   event.stopImmediatePropagation();
   try { state = resizeLeague(state, Number(new FormData(event.target).get('teamCount'))); persist(); render(); } catch (error) { alert(error.message); }
+}, true);
+root.addEventListener('submit', (event) => {
+  if (event.target.id !== 'setup-form') return;
+  event.preventDefault(); event.stopImmediatePropagation();
+  const form = new FormData(event.target);
+  const setup = form.get('setup');
+  state = createSetup(setup, setup === 'classic' ? classicPlayers : players, { teamCount: Number(form.get('teamCount')), budget: Number(form.get('budget')), ownTeamName: form.get('ownTeamName') });
+  persist(); render();
+}, true);
+root.addEventListener('change', (event) => {
+  if (event.target.name !== 'setup') return;
+  const form = event.target.closest('form');
+  form.elements.teamCount.value = event.target.value === 'classic' ? 8 : 10;
+  form.elements.budget.value = event.target.value === 'classic' ? 500 : 1000;
+}, true);
+root.addEventListener('click', (event) => {
+  if (event.target.dataset.action !== 'reset') return;
+  event.stopImmediatePropagation();
+  if (confirm('Creare una nuova asta? I dati correnti verranno rimossi dal browser.')) { state = null; localStorage.removeItem('tool-asta-mantra-state-v1'); render(); }
 }, true);
 root.addEventListener('click', (event) => {
   const row = event.target.closest?.('[data-action="select-player"]');
