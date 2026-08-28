@@ -7,7 +7,7 @@ Sostituire il workbook dell'asta con una web app locale, semplice da usare duran
 ## Funzioni
 
 - Asta live: registra una cessione scegliendo giocatore, squadra, prezzo e ruolo budget.
-- Giocatori: ricerca, filtri per ruolo Mantra, squadra reale e disponibilità; ordinamento per quotazione, FVM e nome.
+- Giocatori: ricerca, filtri per ruolo Mantra, squadra reale e disponibilità; ordinamento per quotazione, FVM e nome. Il catalogo è modificabile nell'app: si possono aggiungere, correggere ed eliminare giocatori liberi.
 - Squadre: riepilogo e rosa delle dieci squadre con budget iniziale, spesa, residuo, giocatori e slot rimanenti.
 - Strategia: nome della propria squadra, budget, dimensione rosa e tabella P/D/E/M/C/W/T/A/Pc con slot, minimo, obiettivo e massimo; priorità, tetto e note per giocatore.
 - Backup: esportazione e importazione JSON, oltre al ripristino esplicito dei dati iniziali.
@@ -15,6 +15,7 @@ Sostituire il workbook dell'asta con una web app locale, semplice da usare duran
 ## Regole
 
 - Ogni giocatore ha un ID unico e può avere una sola assegnazione.
+- Un giocatore assegnato resta modificabile nei dati descrittivi, ma non eliminabile finché l'assegnazione non viene rimossa.
 - Ogni squadra inizia con 1000 crediti e 28 slot; i valori restano configurabili.
 - Prezzo e squadra sono obbligatori, con prezzo positivo; il ruolo budget deve essere compatibile con il giocatore.
 - Il superamento di budget richiede conferma ma non blocca l'asta.

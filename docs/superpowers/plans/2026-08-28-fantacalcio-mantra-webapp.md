@@ -15,6 +15,7 @@
 - Nessun login, backend o dipendenza runtime.
 - Dieci squadre con valori iniziali 1000 crediti e 28 slot, configurabili.
 - Un giocatore può avere una sola assegnazione; il ruolo budget scelto deve essere compatibile.
+- Il catalogo è editabile in-app; l'eliminazione è consentita solo per giocatori senza assegnazione.
 - Stato e Strategia sono persistiti in `localStorage` ed esportabili/importabili in JSON.
 - Solo dati mancanti, prezzo non positivo, ruolo incompatibile e doppia assegnazione bloccano una cessione.
 
@@ -81,7 +82,7 @@ test('assigned player cannot be sold twice', () => {
 - [ ] **Step 4: Run `npm test`; verify all tests pass.**
 - [ ] **Step 5: Commit with `git add index.html src tests && git commit -m "feat: add live auction interface"`.**
 
-### Task 4: Squadre, Strategia e backup
+### Task 4: Squadre, Strategia, catalogo modificabile e backup
 
 **Files:**
 - Modify: `src/domain.js`, `src/app.js`, `src/render.js`, `src/styles.css`
@@ -92,7 +93,7 @@ test('assigned player cannot be sold twice', () => {
 
 - [ ] **Step 1: Write a failing test that a price of 51 in M produces `maximum-exceeded` when the own team M maximum is 50.**
 - [ ] **Step 2: Run `npm test -- tests/strategy.test.js`; verify it fails because the strategy functions are absent.**
-- [ ] **Step 3: Implement the ten-team dashboard and per-team roster, then the Strategia editor for own-team name, total budget, roster size, role rows, and player priority/cap/note. Display non-blocking warnings. Add export, file import, reset confirmation, assignment correction and deletion.**
+- [ ] **Step 3: Implement the ten-team dashboard and per-team roster, then the Strategia editor for own-team name, total budget, roster size, role rows, and player priority/cap/note. Add a catalog editor that creates, edits and deletes free players while validating unique IDs and at least one role; assigned players cannot be deleted. Display non-blocking warnings. Add export, file import, reset confirmation, assignment correction and deletion.**
 - [ ] **Step 4: Run `npm test`; verify all tests pass.**
 - [ ] **Step 5: Commit with `git add src tests && git commit -m "feat: add strategy and team dashboards"`.**
 
