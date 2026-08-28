@@ -6,7 +6,6 @@ import { filterPlayers, selectedPlayerLabel, suggestedBudgetRole, sortRows } fro
 
 const root = document.querySelector('#app');
 let state = loadState(localStorage, null);
-if (state && !state.setup) state = { ...state, setup: 'mantra' };
 let tab = 'asta';
 let filters = { query: '', role: '', availability: 'free' };
 let selectedPlayerId = '';
