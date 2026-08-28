@@ -1,0 +1,8 @@
+{
+  "name": "tool-asta-mantra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
