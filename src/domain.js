@@ -11,6 +11,8 @@ const DEFAULT_TEAMS = Array.from({ length: 10 }, (_, index) => ({
   rosterSize: 28,
 }));
 
+const DEFAULT_ROLE_BUDGETS = Object.fromEntries(['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, { slots: 0, min: 0, target: 0, max: 1000 }]));
+
 export const allowedBudgetRoles = (player) => Object.entries(ROLE_GROUPS)
   .filter(([, tokens]) => player.roles.some((role) => tokens.includes(role)))
   .map(([role]) => role);
@@ -20,7 +22,7 @@ export const createInitialState = (players) => ({
   teams: DEFAULT_TEAMS.map((team) => ({ ...team })),
   assignments: [],
   ownTeamId: 'team-1',
-  strategy: {},
+  strategy: { roleBudgets: structuredClone(DEFAULT_ROLE_BUDGETS), playerNotes: {} },
 });
 
 export const teamSummary = (state, teamId) => {
@@ -40,3 +42,13 @@ export const assignPlayer = (state, assignment) => {
   if (!allowedBudgetRoles(player).includes(assignment.budgetRole)) throw new Error('Ruolo budget non compatibile');
   return { ...state, assignments: [...state.assignments, { ...assignment, createdAt: new Date().toISOString() }] };
 };
+
+export const strategyWarnings = (state) => Object.entries(state.strategy?.roleBudgets || {})
+  .flatMap(([role, budget]) => {
+    const spent = state.assignments
+      .filter((entry) => entry.teamId === state.ownTeamId && entry.budgetRole === role)
+      .reduce((total, entry) => total + entry.price, 0);
+    return spent > Number(budget.max)
+      ? [{ kind: 'maximum-exceeded', role, spent, limit: Number(budget.max) }]
+      : [];
+  });
