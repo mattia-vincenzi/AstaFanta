@@ -13,14 +13,14 @@ test('catalogue filter keeps only free players matching a Mantra role', () => {
   );
 });
 
-test('Mantra filters use role families while Classic filters use exact roles', () => {
+test('Mantra and Classic filters use their exact catalogue roles', () => {
   const players = [
     { id: '1', name: 'Portiere Mantra', roles: ['Por'], team: 'Roma' },
     { id: '2', name: 'Difensore Mantra', roles: ['Dc'], team: 'Inter' },
     { id: '3', name: 'Portiere Classic', roles: ['P'], team: 'Milan' },
   ];
-  assert.deepEqual(filterPlayers(players, new Set(), { role: 'P', availability: 'free', query: '' }, 'mantra').map(({ id }) => id), ['1', '3']);
-  assert.deepEqual(filterPlayers(players, new Set(), { role: 'D', availability: 'free', query: '' }, 'mantra').map(({ id }) => id), ['2']);
+  assert.deepEqual(filterPlayers(players, new Set(), { role: 'Por', availability: 'free', query: '' }, 'mantra').map(({ id }) => id), ['1']);
+  assert.deepEqual(filterPlayers(players, new Set(), { role: 'Dc', availability: 'free', query: '' }, 'mantra').map(({ id }) => id), ['2']);
   assert.deepEqual(filterPlayers(players, new Set(), { role: 'P', availability: 'free', query: '' }, 'classic').map(({ id }) => id), ['3']);
 });
 

@@ -1,8 +1,4 @@
-const ROLE_GROUPS = {
-  P: ['P', 'Por'],
-  D: ['D', 'Dd', 'Dc', 'Ds', 'B'],
-  E: ['E'], M: ['M'], C: ['C'], W: ['W'], T: ['T'], A: ['A'], Pc: ['Pc'],
-};
+const MANTRA_ROLES = ['Por', 'Dd', 'Ds', 'Dc', 'B', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'];
 
 const DEFAULT_TEAMS = Array.from({ length: 10 }, (_, index) => ({
   id: `team-${index + 1}`,
@@ -11,18 +7,16 @@ const DEFAULT_TEAMS = Array.from({ length: 10 }, (_, index) => ({
   rosterSize: 28,
 }));
 
-const DEFAULT_ROLE_BUDGETS = Object.fromEntries(['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, { slots: 0, min: 0, target: 0, max: 1000 }]));
+const DEFAULT_ROLE_BUDGETS = Object.fromEntries(MANTRA_ROLES.map((role) => [role, { slots: 0, min: 0, target: 0, max: 1000 }]));
 const CLASSIC_SLOTS = { P: 3, D: 8, C: 8, A: 6 };
 const SETUP_RULES = {
-  mantra: { id: 'mantra', label: 'Mantra', roles: ['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'], slots: null, defaultTeams: 10, defaultBudget: 1000, rosterSize: 28 },
+  mantra: { id: 'mantra', label: 'Mantra', roles: MANTRA_ROLES, slots: null, defaultTeams: 10, defaultBudget: 1000, rosterSize: 28 },
   classic: { id: 'classic', label: 'Classic', roles: ['P', 'D', 'C', 'A'], slots: CLASSIC_SLOTS, defaultTeams: 8, defaultBudget: 500, rosterSize: 25 },
 };
 
 export const setupRules = (setup = 'mantra') => structuredClone(SETUP_RULES[setup] || SETUP_RULES.mantra);
 
-export const allowedBudgetRoles = (player) => Object.entries(ROLE_GROUPS)
-  .filter(([, tokens]) => player.roles.some((role) => tokens.includes(role)))
-  .map(([role]) => role);
+export const allowedBudgetRoles = (player) => Array.isArray(player?.roles) ? [...player.roles] : [];
 
 export const createInitialState = (players) => ({
   players,
@@ -37,12 +31,32 @@ export const createSetup = (setup, players, options = {}) => {
   const classic = rules.id === 'classic';
   const teamCount = Number(options.teamCount) || rules.defaultTeams;
   const budget = Number(options.budget) || rules.defaultBudget;
+  const initial = createInitialState(players);
+  const roleBudgets = classic
+    ? Object.fromEntries(Object.entries(CLASSIC_SLOTS).map(([role, slots]) => [role, { slots, min: 0, target: 0, max: budget }]))
+    : Object.fromEntries(MANTRA_ROLES.map((role) => [role, { slots: 0, min: 0, target: 0, max: budget }]));
   return {
-    ...createInitialState(players),
+    ...initial,
     setup: rules.id,
     teams: Array.from({ length: teamCount }, (_, index) => ({ id: `team-${index + 1}`, name: index === 0 && options.ownTeamName ? options.ownTeamName : `Squadra ${index + 1}`, budget, rosterSize: rules.rosterSize })),
     classicSlots: classic ? { ...CLASSIC_SLOTS } : null,
+    strategy: { ...initial.strategy, roleBudgets },
   };
+};
+
+export const addStrategyRole = (state, role) => {
+  if (state.setup === 'classic') throw new Error('I ruoli Classic sono fissi');
+  if (!setupRules('mantra').roles.includes(role)) throw new Error('Ruolo Mantra non valido');
+  if (state.strategy.roleBudgets[role]) return state;
+  const budget = state.teams.find((team) => team.id === state.ownTeamId)?.budget ?? setupRules('mantra').defaultBudget;
+  return { ...state, strategy: { ...state.strategy, roleBudgets: { ...state.strategy.roleBudgets, [role]: { slots: 0, min: 0, target: 0, max: budget } } } };
+};
+
+export const removeStrategyRole = (state, role) => {
+  if (state.setup === 'classic') throw new Error('I ruoli Classic sono fissi');
+  const roleBudgets = { ...state.strategy.roleBudgets };
+  delete roleBudgets[role];
+  return { ...state, strategy: { ...state.strategy, roleBudgets } };
 };
 
 export const canAssignClassic = (state, assignment) => {

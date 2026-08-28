@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assignPlayer, canAssignClassic, createInitialState, createSetup, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, roleSummaries, setupRules, teamSummary, validatePlayer } from '../src/domain.js';
+import { addStrategyRole, assignPlayer, canAssignClassic, createInitialState, createSetup, opponentSummaries, ownRoleSummaries, removeStrategyRole, renameTeam, resizeLeague, roleSummaries, setupRules, teamSummary, validatePlayer } from '../src/domain.js';
 
 const players = [{ id: '1', name: 'Rossi', roles: ['M', 'C'], team: 'Roma', qt: 10, fvm: 20 }];
 
@@ -72,10 +72,35 @@ test('setup rules expose the complete Classic and Mantra contracts', () => {
   assert.deepEqual(setupRules('classic'), {
     id: 'classic', label: 'Classic', roles: ['P', 'D', 'C', 'A'], slots: { P: 3, D: 8, C: 8, A: 6 }, defaultTeams: 8, defaultBudget: 500, rosterSize: 25,
   });
-  assert.deepEqual(setupRules('mantra').roles, ['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc']);
+  assert.deepEqual(setupRules('mantra').roles, ['Por', 'Dd', 'Ds', 'Dc', 'B', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc']);
   assert.equal(setupRules('mantra').defaultTeams, 10);
   assert.equal(setupRules('mantra').defaultBudget, 1000);
   assert.equal(setupRules('mantra').rosterSize, 28);
+});
+
+test('Mantra assignments use the player real role instead of an aggregate role', () => {
+  const state = createSetup('mantra', [{ id: 'por', name: 'Portiere', team: 'Roma', roles: ['Por'] }], {});
+  assert.throws(() => assignPlayer(state, { playerId: 'por', teamId: 'team-1', price: 1, budgetRole: 'P' }), /compatibile/);
+  assert.equal(assignPlayer(state, { playerId: 'por', teamId: 'team-1', price: 1, budgetRole: 'Por' }).assignments[0].budgetRole, 'Por');
+});
+
+test('Classic strategy includes fixed slots and editable budget thresholds for every role', () => {
+  const state = createSetup('classic', [], {});
+  assert.deepEqual(state.strategy.roleBudgets, {
+    P: { slots: 3, min: 0, target: 0, max: 500 },
+    D: { slots: 8, min: 0, target: 0, max: 500 },
+    C: { slots: 8, min: 0, target: 0, max: 500 },
+    A: { slots: 6, min: 0, target: 0, max: 500 },
+  });
+});
+
+test('only Mantra strategy roles can be added and removed', () => {
+  let mantra = createSetup('mantra', [], {});
+  mantra = removeStrategyRole(mantra, 'B');
+  assert.equal(mantra.strategy.roleBudgets.B, undefined);
+  mantra = addStrategyRole(mantra, 'B');
+  assert.deepEqual(mantra.strategy.roleBudgets.B, { slots: 0, min: 0, target: 0, max: 1000 });
+  assert.throws(() => removeStrategyRole(createSetup('classic', [], {}), 'P'), /Classic/);
 });
 
 test('classic enforces every positional quota', () => {

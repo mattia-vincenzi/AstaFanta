@@ -7,6 +7,8 @@ Web app locale per gestire un'asta Mantra o Classic. La modalità si sceglie all
 
 Numero di squadre e crediti iniziali sono modificabili per entrambe le modalità. Dopo la creazione, il numero dei partecipanti si gestisce nel tab **Squadre**.
 
+In Mantra catalogo, asta e filtri usano tutti i ruoli reali (`Por`, `Dd`, `Ds`, `Dc`, `B`, `E`, `M`, `C`, `W`, `T`, `A`, `Pc`). Nella Strategia Mantra puoi aggiungere o rimuovere i ruoli da pianificare. In Classic i ruoli `P/D/C/A` restano fissi, ma puoi configurare minimo, obiettivo e massimo di budget per ciascuno.
+
 ## Avvio
 
 Non richiede installazione di pacchetti. Dalla cartella del progetto:

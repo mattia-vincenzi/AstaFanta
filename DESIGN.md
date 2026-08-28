@@ -16,8 +16,8 @@ Tool operativo locale per un'asta di fantacalcio. Deve essere leggibile rapidame
 ## Componenti distintivi
 
 - I badge ruolo sono l'elemento identificativo trasversale a dashboard, rose, strategia e catalogo.
-- Classic usa sempre l'ordine `P, D, C, A` e visualizza occupazione/quota.
-- Mantra conserva l'ordine `P, D, E, M, C, W, T, A, Pc` e visualizza spesa/obiettivo.
+- Classic usa sempre l'ordine `P, D, C, A`, visualizza occupazione/quota e mantiene i quattro ruoli fissi in Strategia.
+- Mantra usa i ruoli reali `Por, Dd, Ds, Dc, B, E, M, C, W, T, A, Pc`; la dashboard visualizza soltanto quelli attivati in Strategia.
 
 ## Accessibilità e layout
 

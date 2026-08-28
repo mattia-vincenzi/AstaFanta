@@ -3,9 +3,7 @@ import { allowedBudgetRoles, canAssignClassic } from './domain.js';
 export const filterPlayers = (players, assignedIds, filters, setup = 'mantra') => players.filter((player) => {
   const query = filters.query.trim().toLowerCase();
   const matchesQuery = !query || `${player.name} ${player.team}`.toLowerCase().includes(query);
-  const matchesRole = !filters.role || (setup === 'classic'
-    ? player.roles.includes(filters.role)
-    : allowedBudgetRoles(player).includes(filters.role));
+  const matchesRole = !filters.role || player.roles.includes(filters.role);
   const matchesAvailability = filters.availability !== 'free' || !assignedIds.has(player.id);
   return matchesQuery && matchesRole && matchesAvailability;
 });

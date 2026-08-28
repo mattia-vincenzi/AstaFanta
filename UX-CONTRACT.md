@@ -19,7 +19,8 @@
 - Il numero di squadre si modifica soltanto nel tab Squadre; non si possono rimuovere squadre con acquisti.
 - La Strategia modifica soltanto la squadra impostata come propria.
 - In Classic la rosa è sempre 25 con quote 3P/8D/8C/6A; tali valori non sono editabili.
-- In Mantra restano disponibili slot e soglie di budget per ruolo.
+- In Classic minimo, obiettivo e massimo di budget sono configurabili per `P/D/C/A`.
+- In Mantra slot e soglie di budget sono configurabili per ogni ruolo reale; i ruoli possono essere aggiunti o rimossi dalla Strategia.
 
 ## Azioni distruttive ed errori
 
