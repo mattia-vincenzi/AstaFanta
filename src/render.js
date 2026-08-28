@@ -1,10 +1,25 @@
-export const filterPlayers = (players, assignedIds, filters) => players.filter((player) => {
+import { allowedBudgetRoles, canAssignClassic } from './domain.js';
+
+export const filterPlayers = (players, assignedIds, filters, setup = 'mantra') => players.filter((player) => {
   const query = filters.query.trim().toLowerCase();
   const matchesQuery = !query || `${player.name} ${player.team}`.toLowerCase().includes(query);
-  const matchesRole = !filters.role || player.roles.includes(filters.role);
+  const matchesRole = !filters.role || (setup === 'classic'
+    ? player.roles.includes(filters.role)
+    : allowedBudgetRoles(player).includes(filters.role));
   const matchesAvailability = filters.availability !== 'free' || !assignedIds.has(player.id);
   return matchesQuery && matchesRole && matchesAvailability;
 });
+
+export const catalogueForSetup = (setup, savedPlayers, defaultPlayers) => {
+  if (setup !== 'classic' || !Array.isArray(savedPlayers)) return savedPlayers;
+  const classicRoles = new Set(['P', 'D', 'C', 'A']);
+  const compatible = savedPlayers.every((player) => Array.isArray(player.roles) && player.roles.every((role) => classicRoles.has(role)));
+  return compatible ? savedPlayers : defaultPlayers;
+};
+
+export const catalogueColumns = (setup) => setup === 'classic'
+  ? { role: 'R', fvm: 'FVM' }
+  : { role: 'RM', fvm: 'FVM M' };
 
 export const selectedPlayerLabel = (player) => `${player.name} · ${player.team} (${player.roles.join('/')})`;
 
@@ -50,4 +65,3 @@ export const sortRows = (rows, key, direction = 'asc') => [...rows].sort((left, 
     : String(a ?? '').localeCompare(String(b ?? ''), 'it', { numeric: true });
   return direction === 'desc' ? -comparison : comparison;
 });
-import { allowedBudgetRoles, canAssignClassic } from './domain.js';

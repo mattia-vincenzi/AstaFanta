@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assignableRoles, filterPlayers, groupRosterByRole, roleCardModel, selectedPlayerLabel, suggestedBudgetRole, sortRows } from '../src/render.js';
+import { assignableRoles, catalogueColumns, catalogueForSetup, filterPlayers, groupRosterByRole, roleCardModel, selectedPlayerLabel, suggestedBudgetRole, sortRows } from '../src/render.js';
 
 test('catalogue filter keeps only free players matching a Mantra role', () => {
   const players = [
@@ -11,6 +11,29 @@ test('catalogue filter keeps only free players matching a Mantra role', () => {
     filterPlayers(players, new Set(['2']), { role: 'M', availability: 'free', query: '' }),
     [players[0]],
   );
+});
+
+test('Mantra filters use role families while Classic filters use exact roles', () => {
+  const players = [
+    { id: '1', name: 'Portiere Mantra', roles: ['Por'], team: 'Roma' },
+    { id: '2', name: 'Difensore Mantra', roles: ['Dc'], team: 'Inter' },
+    { id: '3', name: 'Portiere Classic', roles: ['P'], team: 'Milan' },
+  ];
+  assert.deepEqual(filterPlayers(players, new Set(), { role: 'P', availability: 'free', query: '' }, 'mantra').map(({ id }) => id), ['1', '3']);
+  assert.deepEqual(filterPlayers(players, new Set(), { role: 'D', availability: 'free', query: '' }, 'mantra').map(({ id }) => id), ['2']);
+  assert.deepEqual(filterPlayers(players, new Set(), { role: 'P', availability: 'free', query: '' }, 'classic').map(({ id }) => id), ['3']);
+});
+
+test('an incompatible saved Classic catalogue is restored from Classic defaults', () => {
+  const saved = [{ id: '1', name: 'Portiere', team: 'Roma', roles: ['Por'] }];
+  const defaults = [{ id: '1', name: 'Portiere', team: 'Roma', roles: ['P'] }];
+  assert.equal(catalogueForSetup('classic', saved, defaults), defaults);
+  assert.equal(catalogueForSetup('classic', defaults, []), defaults);
+});
+
+test('catalogue column labels follow the source format', () => {
+  assert.deepEqual(catalogueColumns('classic'), { role: 'R', fvm: 'FVM' });
+  assert.deepEqual(catalogueColumns('mantra'), { role: 'RM', fvm: 'FVM M' });
 });
 
 test('selected catalogue player has a clear assignment label', () => {
