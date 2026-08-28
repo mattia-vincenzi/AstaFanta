@@ -10,6 +10,38 @@ export const selectedPlayerLabel = (player) => `${player.name} · ${player.team}
 
 export const suggestedBudgetRole = (roles) => roles[0] || '';
 
+export const assignableRoles = (state, player, teamId) => allowedBudgetRoles(player || { roles: [] })
+  .filter((role) => state.setup !== 'classic' || canAssignClassic(state, { teamId, budgetRole: role }));
+
+export const roleCardModel = (setup, summary) => {
+  if (setup === 'classic') {
+    return {
+      role: summary.role,
+      value: `${summary.spent} crediti`,
+      detail: `${summary.players}/${summary.slots} acquistati`,
+      supporting: summary.complete ? 'Reparto completo' : `${summary.slotsRemaining} ${summary.slotsRemaining === 1 ? 'slot libero' : 'slot liberi'}`,
+      progress: summary.slots ? Math.min(100, Math.round((summary.players / summary.slots) * 100)) : 0,
+      complete: summary.complete,
+    };
+  }
+  return {
+    role: summary.role,
+    value: `${summary.spent} / ${summary.target || '—'}`,
+    detail: `${Math.max(0, summary.remaining)} crediti al target`,
+    supporting: '',
+    progress: summary.target ? Math.min(100, Math.round((summary.spent / summary.target) * 100)) : 0,
+    complete: false,
+  };
+};
+
+export const groupRosterByRole = (assignments, players, roles) => roles.map((role) => ({
+  role,
+  players: assignments
+    .filter((assignment) => assignment.budgetRole === role)
+    .map((assignment) => ({ ...assignment, ...players.find((player) => player.id === assignment.playerId) }))
+    .sort((left, right) => String(left.name).localeCompare(String(right.name), 'it')),
+}));
+
 export const sortRows = (rows, key, direction = 'asc') => [...rows].sort((left, right) => {
   const a = left[key];
   const b = right[key];
@@ -18,3 +50,4 @@ export const sortRows = (rows, key, direction = 'asc') => [...rows].sort((left, 
     : String(a ?? '').localeCompare(String(b ?? ''), 'it', { numeric: true });
   return direction === 'desc' ? -comparison : comparison;
 });
+import { allowedBudgetRoles, canAssignClassic } from './domain.js';
