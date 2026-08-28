@@ -86,6 +86,23 @@ export const renameTeam = (state, teamId, name) => {
   };
 };
 
+export const updateTeamConfiguration = (state, teamId, configuration) => {
+  const team = state.teams.find((entry) => entry.id === teamId);
+  if (!team) throw new Error('Squadra non trovata');
+  const budget = Number(configuration.budget);
+  const rosterSize = state.setup === 'classic' ? setupRules('classic').rosterSize : Number(configuration.rosterSize);
+  if (!Number.isInteger(budget)) throw new Error('Il budget deve essere un numero intero');
+  if (budget < 1) throw new Error('Il budget deve essere almeno 1');
+  if (!Number.isInteger(rosterSize) || rosterSize < 1) throw new Error('La dimensione rosa deve essere un intero positivo');
+  const summary = teamSummary(state, teamId);
+  if (budget < summary.spent) throw new Error('Il budget non può essere inferiore ai crediti già spesi');
+  if (rosterSize < summary.players) throw new Error('La rosa non può essere inferiore ai giocatori già acquistati');
+  return {
+    ...state,
+    teams: state.teams.map((entry) => entry.id === teamId ? { ...entry, budget, rosterSize } : entry),
+  };
+};
+
 export const resizeLeague = (state, count) => {
   if (!Number.isInteger(count) || count < 2) throw new Error('Il numero di squadre deve essere almeno 2');
   if (count < state.teams.length) {
@@ -98,7 +115,8 @@ export const resizeLeague = (state, count) => {
   const teams = count <= state.teams.length
     ? state.teams.slice(0, count)
     : [...state.teams, ...Array.from({ length: count - state.teams.length }, (_, index) => defaultTeam(state.teams.length + index + 1))];
-  return { ...state, teams };
+  const ownTeamId = teams.some((team) => team.id === state.ownTeamId) ? state.ownTeamId : teams[0].id;
+  return { ...state, teams, ownTeamId };
 };
 
 export const validatePlayer = (setup, player) => {
@@ -115,6 +133,7 @@ export const assignPlayer = (state, assignment) => {
   if (!state.teams.some((entry) => entry.id === assignment.teamId)) throw new Error('Squadra non trovata');
   if (!Number.isFinite(assignment.price) || assignment.price <= 0) throw new Error('Prezzo non valido');
   if (state.assignments.some((entry) => entry.playerId === assignment.playerId)) throw new Error('Giocatore già assegnato');
+  if (teamSummary(state, assignment.teamId).slotsRemaining <= 0) throw new Error('Rosa piena');
   if (!allowedBudgetRoles(player).includes(assignment.budgetRole)) throw new Error('Ruolo budget non compatibile');
   if (state.setup === 'classic' && !canAssignClassic(state, assignment)) throw new Error('Slot Classic esauriti per questo ruolo');
   return { ...state, assignments: [...state.assignments, { ...assignment, createdAt: new Date().toISOString() }] };

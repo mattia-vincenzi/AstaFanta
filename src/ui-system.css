@@ -6,7 +6,7 @@
 .target-bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px}
 .target-band{padding:12px;border:1px solid var(--line);border-radius:7px;background:var(--surface)}
 .target-band-fields{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:8px}
-.target-band textarea{width:100%;resize:vertical}
+.target-band textarea{width:100%;resize:none}
 .target-band>.remove-player{margin-top:8px}
 .target-empty{margin:10px 0 0;font-size:.82rem}
 .role-card.budget-within{background:#e7f4ec;border-color:#9dcbb0}
@@ -18,3 +18,4 @@
 .role-card.budget-over .meter i{background:var(--danger)}
 .role-card.budget-over>span:not(.role-badge),.role-card.budget-over small{color:#852323}
 .strategy-top{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+@media(max-width:620px){button,.button{min-width:44px;min-height:44px}}

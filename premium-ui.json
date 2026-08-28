@@ -1,0 +1,20 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["src"],
+  "locale": "it-IT",
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": ["Table Selection", "Select/Listbox", "Form", "CRUD"],
+  "ownership": {
+    "Select/Listbox": "native",
+    "Form": "authored"
+  },
+  "requiredCommands": ["unit", "e2e"],
+  "commands": {
+    "unit": "npm test",
+    "e2e": "npm run test:e2e"
+  },
+  "evidence": {
+    "crudFullFlow": "tests/e2e/catalogue.spec.js",
+    "failurePaths": "tests/e2e/backup.spec.js"
+  }
+}

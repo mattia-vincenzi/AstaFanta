@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { exportState, importState, loadState, saveState } from '../src/storage.js';
 
 test('state survives JSON export and import', () => {
-  const state = { teams: [], players: [], assignments: [{ playerId: '1', teamId: 'team-1', price: 12, budgetRole: 'M' }], strategy: {} };
+  const state = { teams: [{ id: 'team-1', name: 'Io', budget: 1000, rosterSize: 28 }], ownTeamId: 'team-1', players: [{ id: '1', name: 'Rossi', team: 'Roma', roles: ['M'] }], assignments: [{ playerId: '1', teamId: 'team-1', price: 12, budgetRole: 'M' }], strategy: {} };
   assert.deepEqual(importState(exportState(state)), { ...state, setup: 'mantra', classicSlots: null, strategy: { roleBudgets: {}, roleTargets: Object.fromEntries(['Por', 'Dd', 'Ds', 'Dc', 'B', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, []])) } });
 });
 
@@ -15,7 +15,7 @@ test('invalid stored JSON returns the fallback state', () => {
 test('save writes a reloadable state', () => {
   let saved;
   const storage = { getItem: () => saved, setItem: (_key, value) => { saved = value; } };
-  const state = { teams: [], players: [], assignments: [], strategy: { ownTeam: 'Io' } };
+  const state = { teams: [{ id: 'team-1', name: 'Io', budget: 1000, rosterSize: 28 }], ownTeamId: 'team-1', players: [], assignments: [], strategy: { ownTeam: 'Io' } };
   saveState(storage, state);
   assert.deepEqual(loadState(storage, {}), { ...state, setup: 'mantra', classicSlots: null, strategy: { ...state.strategy, roleBudgets: {}, roleTargets: Object.fromEntries(['Por', 'Dd', 'Ds', 'Dc', 'B', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, []])) } });
 });
@@ -26,7 +26,7 @@ test('legacy backups without a setup are migrated to Mantra', () => {
 });
 
 test('Classic backups retain league configuration and restore fixed slots', () => {
-  const classic = { setup: 'classic', teams: [{ id: 'team-1', name: 'Io', budget: 650, rosterSize: 99 }], players: [{ id: 'custom', roles: ['A'] }], assignments: [], strategy: {} };
+  const classic = { setup: 'classic', teams: [{ id: 'team-1', name: 'Io', budget: 650, rosterSize: 99 }], ownTeamId: 'team-1', players: [{ id: 'custom', name: 'Attaccante', team: 'Roma', roles: ['A'] }], assignments: [], strategy: {} };
   const restored = importState(JSON.stringify({ version: 1, state: classic }));
   assert.equal(restored.setup, 'classic');
   assert.equal(restored.teams[0].budget, 650);
@@ -52,9 +52,31 @@ test('legacy Mantra aggregate roles migrate to real catalogue roles', () => {
 
 test('target player bands survive backup export and import', () => {
   const state = {
-    setup: 'mantra', teams: [{ id: 'team-1', budget: 1000, rosterSize: 28 }], players: [], assignments: [],
+    setup: 'mantra', teams: [{ id: 'team-1', name: 'Io', budget: 1000, rosterSize: 28 }], ownTeamId: 'team-1', players: [], assignments: [],
     strategy: { roleBudgets: { M: { slots: 3, min: 10, target: 40, max: 70 } }, roleTargets: { M: [{ id: 'm-1', label: 'Titolari', min: 10, max: 35, players: 'Rossi\nBianchi' }] } },
   };
   const restored = importState(exportState(state));
   assert.deepEqual(restored.strategy.roleTargets.M, [{ id: 'm-1', label: 'Titolari', min: 10, max: 35, players: 'Rossi\nBianchi' }]);
+});
+
+test('rejects an incomplete backup schema', () => {
+  assert.throws(() => importState(JSON.stringify({ version: 1, state: {} })), /Backup non valido/);
+});
+
+test('rejects assignments with missing team or player references', () => {
+  const state = {
+    setup: 'mantra',
+    teams: [{ id: 'team-1', name: 'Io', budget: 1000, rosterSize: 28 }],
+    ownTeamId: 'team-1',
+    players: [{ id: '1', name: 'Rossi', team: 'Roma', roles: ['M'] }],
+    assignments: [{ playerId: 'missing', teamId: 'team-2', price: 10, budgetRole: 'M' }],
+    strategy: {},
+  };
+  assert.throws(() => importState(exportState(state)), /Backup non valido/);
+});
+
+test('loadState preserves fallback when the stored schema is invalid', () => {
+  const fallback = { marker: 'current' };
+  const storage = { getItem: () => JSON.stringify({ version: 1, state: {} }) };
+  assert.deepEqual(loadState(storage, fallback), fallback);
 });

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as domain from '../src/domain.js';
 import { addStrategyRole, assignPlayer, canAssignClassic, createInitialState, createSetup, opponentSummaries, ownRoleSummaries, removeStrategyRole, renameTeam, resizeLeague, roleSummaries, setupRules, teamSummary, validatePlayer } from '../src/domain.js';
 
 const players = [{ id: '1', name: 'Rossi', roles: ['M', 'C'], team: 'Roma', qt: 10, fvm: 20 }];
@@ -22,6 +23,30 @@ test('assigned player cannot be sold twice', () => {
   assert.throws(() => assignPlayer(once, {
     playerId: '1', teamId: 'team-2', price: 13, budgetRole: 'C',
   }), /già assegnato/);
+});
+
+test('Mantra rejects an assignment when the roster is full', () => {
+  const state = createSetup('mantra', [
+    { id: '1', name: 'Primo', team: 'Roma', roles: ['M'] },
+    { id: '2', name: 'Secondo', team: 'Milan', roles: ['C'] },
+  ], {});
+  state.teams[0].rosterSize = 1;
+  state.assignments = [{ playerId: '1', teamId: 'team-1', price: 10, budgetRole: 'M' }];
+
+  assert.throws(() => assignPlayer(state, {
+    playerId: '2', teamId: 'team-1', price: 5, budgetRole: 'C',
+  }), /Rosa piena/);
+});
+
+test('team configuration rejects invalid budgets and preserves spent credits', () => {
+  assert.equal(typeof domain.updateTeamConfiguration, 'function');
+  const state = createSetup('mantra', players, {});
+  state.assignments = [{ playerId: '1', teamId: 'team-1', price: 30, budgetRole: 'M' }];
+
+  assert.throws(() => domain.updateTeamConfiguration(state, 'team-1', { budget: 1, rosterSize: 28 }), /spesi/);
+  assert.throws(() => domain.updateTeamConfiguration(state, 'team-1', { budget: 0, rosterSize: 28 }), /budget/);
+  assert.throws(() => domain.updateTeamConfiguration(state, 'team-1', { budget: 1000.5, rosterSize: 28 }), /intero/);
+  assert.equal(domain.updateTeamConfiguration(state, 'team-1', { budget: 30, rosterSize: 28 }).teams[0].budget, 30);
 });
 
 test('renaming a team preserves its configuration and the other teams', () => {
@@ -52,6 +77,16 @@ test('league resize adds default teams and refuses to remove assigned teams', ()
   assert.equal(resizeLeague(initial, 12).teams.length, 12);
   const assigned = { ...initial, assignments: [{ playerId: '1', teamId: 'team-10', price: 10, budgetRole: 'M' }] };
   assert.throws(() => resizeLeague(assigned, 9), /acquisti/);
+});
+
+test('league resize realigns ownTeamId when the own empty team is removed', () => {
+  const state = createSetup('mantra', players, { teamCount: 3 });
+  state.ownTeamId = 'team-3';
+
+  const resized = resizeLeague(state, 2);
+
+  assert.equal(resized.ownTeamId, 'team-1');
+  assert.equal(teamSummary(resized, resized.ownTeamId).players, 0);
 });
 
 test('classic setup defaults to eight teams, 500 credits and 25 slots', () => {

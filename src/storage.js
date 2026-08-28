@@ -38,12 +38,14 @@ export const normalizeState = (state) => {
     max: Number(band?.max) || 0,
     players: String(band?.players || ''),
   }))]));
+  const teams = Array.isArray(state?.teams)
+    ? state.teams.map((team, index) => ({ ...team, name: String(team?.name || `Squadra ${index + 1}`), rosterSize: setup === 'classic' ? rules.rosterSize : team.rosterSize }))
+    : [];
   return {
     ...state,
     setup,
-    teams: Array.isArray(state?.teams)
-      ? state.teams.map((team) => ({ ...team, rosterSize: setup === 'classic' ? rules.rosterSize : team.rosterSize }))
-      : [],
+    teams,
+    ownTeamId: state?.ownTeamId || teams[0]?.id,
     players,
     assignments: normalizedAssignments,
     classicSlots: setup === 'classic' ? { ...rules.slots } : null,
@@ -51,10 +53,41 @@ export const normalizeState = (state) => {
   };
 };
 
+const hasUniqueIds = (entries) => new Set(entries.map((entry) => entry.id)).size === entries.length;
+
+const validateNormalizedState = (state) => {
+  const rules = setupRules(state.setup);
+  const validRoles = new Set(rules.roles);
+  const validTeams = Array.isArray(state.teams)
+    && state.teams.length > 0
+    && hasUniqueIds(state.teams)
+    && state.teams.every((team) => typeof team?.id === 'string' && team.id && typeof team.name === 'string' && team.name.trim() && Number.isInteger(team.budget) && team.budget >= 1 && Number.isInteger(team.rosterSize) && team.rosterSize >= 1);
+  const validPlayers = Array.isArray(state.players)
+    && hasUniqueIds(state.players)
+    && state.players.every((player) => typeof player?.id === 'string' && player.id && typeof player.name === 'string' && player.name.trim() && typeof player.team === 'string' && player.team.trim() && Array.isArray(player.roles) && player.roles.length > 0 && player.roles.every((role) => validRoles.has(role)));
+  if (!validTeams || !validPlayers || !state.teams.some((team) => team.id === state.ownTeamId) || !Array.isArray(state.assignments)) throw new Error('Backup non valido');
+
+  const teamIds = new Set(state.teams.map((team) => team.id));
+  const playersById = new Map(state.players.map((player) => [player.id, player]));
+  const assignedPlayerIds = new Set();
+  for (const assignment of state.assignments) {
+    const player = playersById.get(assignment?.playerId);
+    if (!player
+      || !teamIds.has(assignment.teamId)
+      || assignedPlayerIds.has(assignment.playerId)
+      || !Number.isFinite(assignment.price)
+      || assignment.price <= 0
+      || !validRoles.has(assignment.budgetRole)
+      || !player.roles.includes(assignment.budgetRole)) throw new Error('Backup non valido');
+    assignedPlayerIds.add(assignment.playerId);
+  }
+  return state;
+};
+
 export const importState = (text) => {
   const parsed = JSON.parse(text);
   if (parsed?.version !== 1 || !parsed.state || typeof parsed.state !== 'object') throw new Error('Backup non valido');
-  return normalizeState(parsed.state);
+  return validateNormalizedState(normalizeState(parsed.state));
 };
 
 export const saveState = (storage, state) => storage.setItem(STORAGE_KEY, exportState(state));

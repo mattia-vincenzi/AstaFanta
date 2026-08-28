@@ -1,5 +1,14 @@
 # UX contract
 
+## Canonical UI Map
+
+| Capability | Canonical owner | Source of truth | Allowed variants | Verification |
+|---|---|---|---|---|
+| Table Selection | Righe selezionabili in `src/app.js` | Questo contratto | Mouse, Invio, Spazio | `tests/e2e/accessibility-responsive.spec.js` |
+| Select/Listbox | Select HTML nativo | Questo contratto | Popup gestito dalla piattaforma | Suite Playwright Chromium |
+| Form | Submit delegato e validazione dominio | `src/domain.js` | Setup, vendita, strategia, catalogo | Unit test ed E2E catalogo |
+| CRUD | Catalogo giocatori | Questo contratto | Crea, modifica, elimina libero | `tests/e2e/catalogue.spec.js` |
+
 ## Stato e modalità
 
 - Senza stato salvato viene mostrata la scelta Mantra/Classic.

@@ -30,27 +30,27 @@
 - Consumes: `validatePlayer(setup, player)` da `src/domain.js`.
 - Produces: submit catalogo che aggiorna o aggiunge una riga, persiste e richiude il form.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
   In Playwright, aprire Catalogo, cliccare “Aggiungi giocatore”, compilare ID `qa-1`, nome `Test`, squadra `QA`, ruolo `M`, quindi cliccare “Salva giocatore”. Assert: esiste una riga `qa-1` dopo il render e dopo un refresh.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
   Run: `npx playwright test tests/e2e/catalogue.spec.js -g "inserisce"`
 
   Expected: FAIL perché il submit handler non entra nel ramo `player-form`.
 
-- [ ] **Step 3: Implement minimal fix**
+- [x] **Step 3: Implement minimal fix**
 
   Usare un riferimento stabile (`event.target.matches('#player-form')` oppure una classe/data attribute non sovrascrivibile), aggiungere `type="submit"` esplicito e associare ogni input a una `<label for>`.
 
-- [ ] **Step 4: Run focused verification**
+- [x] **Step 4: Run focused verification**
 
   Run: `npx playwright test tests/e2e/catalogue.spec.js -g "inserisce"`
 
   Expected: PASS; il record sopravvive al refresh.
 
-- [ ] **Step 5: Add edit/delete regressions**
+- [x] **Step 5: Add edit/delete regressions**
 
   Verificare modifica di nome/ruolo, ID duplicato rifiutato con stato invariato, eliminazione di un libero con conferma e assenza del pulsante Elimina per un assegnato.
 
@@ -66,21 +66,21 @@
 - Consumes: `teamSummary`, `assignPlayer`, `setupRules`.
 - Produces: assegnazione rifiutata quando `players >= rosterSize`; budget intero positivo e non inferiore alla spesa senza conferma esplicita.
 
-- [ ] **Step 1: Write failing domain tests**
+- [x] **Step 1: Write failing domain tests**
 
   Creare una rosa Mantra da 1 slot con un acquisto esistente e verificare che `assignPlayer` lanci `Rosa piena`. Creare una squadra con spesa 30 e verificare che l’aggiornamento a budget 1 sia rifiutato.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
   Run: `npm test -- --test-name-pattern="rosa piena|budget"`
 
   Expected: FAIL prima dell’implementazione.
 
-- [ ] **Step 3: Implement validation**
+- [x] **Step 3: Implement validation**
 
   Controllare la capienza prima dei ruoli Classic; introdurre una validazione comune per budget/roster (`Number.isInteger`, minimo 1, confronto con `spent`) e mantenere lo stato immutato in caso d’errore.
 
-- [ ] **Step 4: Verify UI**
+- [x] **Step 4: Verify UI**
 
   Run: `npx playwright test tests/e2e/budget-roster.spec.js`
 
@@ -94,21 +94,21 @@
 - Test: `tests/domain.test.js` — resize con e senza acquisti della squadra propria.
 - Create: `tests/e2e/league-resize.spec.js` — riduzione/espansione via UI.
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
   Impostare `ownTeamId` su `team-3`, ridurre da 3 a 2 squadre e verificare che il risultato punti a `team-1` (o alla prima squadra rimasta) e che nessuna funzione lanci `Squadra non trovata`.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
   Run: `npm test -- --test-name-pattern="ownTeamId|resize"`
 
   Expected: FAIL perché `ownTeamId` resta `team-3`.
 
-- [ ] **Step 3: Implement atomic resize**
+- [x] **Step 3: Implement atomic resize**
 
   Dopo la costruzione di `teams`, se `ownTeamId` non è presente assegnare il primo team rimasto; se una squadra da rimuovere ha acquisti, lasciare invariato l’intero stato.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
   Run: `npm test && npx playwright test tests/e2e/league-resize.spec.js`
 
@@ -122,21 +122,21 @@
 - Test: `tests/storage.test.js` — JSON vuoto, schema incompleto, riferimenti mancanti, tipi non numerici.
 - Create: `tests/e2e/backup.spec.js` — export/import valido e rifiuto recuperabile.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
   Importare `{version:1,state:{}}` e uno stato con assegnazione a team inesistente; verificare che `importState` lanci `Backup non valido` e che `loadState` mantenga il fallback.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
   Run: `npm test -- --test-name-pattern="schema|Backup non valido|fallback"`
 
   Expected: FAIL perché lo schema vuoto viene normalizzato e restituito.
 
-- [ ] **Step 3: Implement validation**
+- [x] **Step 3: Implement validation**
 
   Validare almeno una squadra, `ownTeamId` esistente, ID giocatore univoci, riferimenti assegnazione esistenti, prezzi positivi e ruoli ammessi; nessuna mutazione del `state` corrente prima del commit.
 
-- [ ] **Step 4: Verify recovery**
+- [x] **Step 4: Verify recovery**
 
   Run: `npx playwright test tests/e2e/backup.spec.js`
 
@@ -150,15 +150,15 @@
 - Create: `tests/e2e/accessibility-responsive.spec.js` — viewport, focus, semantica e overflow.
 - Modify: `package.json` — script `test:e2e` che avvia server e Playwright.
 
-- [ ] **Step 1: Write failing checks**
+- [x] **Step 1: Write failing checks**
 
   Verificare che ogni input abbia una label associata, che la tabella dichiari il limite dei 120 risultati e che a 390 px i controlli principali abbiano almeno 44 px di area cliccabile.
 
-- [ ] **Step 2: Implement UI hardening**
+- [x] **Step 2: Implement UI hardening**
 
   Aggiungere label reali, `aria-selected` sulla riga selezionata, stato vuoto esplicito, indicazione/paginazione e dimensioni touch senza alterare la logica d’asta.
 
-- [ ] **Step 3: Run complete gate**
+- [x] **Step 3: Run complete gate**
 
   Run: `npm test && npm run test:e2e`
 
@@ -166,7 +166,7 @@
 
 ## Definition of Done
 
-- [ ] I cinque difetti P0/P1 del report QA hanno regressioni automatiche verdi.
-- [ ] `npm test` e `npm run test:e2e` passano con stato pulito e dopo un refresh.
-- [ ] Nessuna importazione invalida altera il backup corrente.
-- [ ] Le modifiche non introducono nuove violazioni di accessibilità o overflow responsive.
+- [x] I cinque difetti P0/P1 del report QA hanno regressioni automatiche verdi.
+- [x] `npm test` e `npm run test:e2e` passano con stato pulito e dopo un refresh.
+- [x] Nessuna importazione invalida altera il backup corrente.
+- [x] Le modifiche non introducono nuove violazioni di accessibilità o overflow responsive.
