@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assignPlayer, createInitialState, teamSummary } from '../src/domain.js';
+import { assignPlayer, createInitialState, opponentSummaries, ownRoleSummaries, renameTeam, resizeLeague, teamSummary } from '../src/domain.js';
 
 const players = [{ id: '1', name: 'Rossi', roles: ['M', 'C'], team: 'Roma', qt: 10, fvm: 20 }];
 
@@ -22,4 +22,34 @@ test('assigned player cannot be sold twice', () => {
   assert.throws(() => assignPlayer(once, {
     playerId: '1', teamId: 'team-2', price: 13, budgetRole: 'C',
   }), /già assegnato/);
+});
+
+test('renaming a team preserves its configuration and the other teams', () => {
+  const initial = createInitialState(players);
+  const state = renameTeam(initial, 'team-2', 'I Campioni');
+
+  assert.equal(state.teams[1].name, 'I Campioni');
+  assert.equal(state.teams[1].budget, 1000);
+  assert.equal(state.teams[1].rosterSize, 28);
+  assert.equal(state.teams[0].name, 'Squadra 1');
+});
+
+test('role dashboard calculates own spending and remaining target', () => {
+  const state = createInitialState(players);
+  state.strategy.roleBudgets.M = { slots: 3, min: 0, target: 60, max: 80 };
+  state.assignments = [{ playerId: '1', teamId: 'team-1', price: 40, budgetRole: 'M' }];
+  assert.deepEqual(ownRoleSummaries(state).find((item) => item.role === 'M'), { role: 'M', spent: 40, target: 60, remaining: 20, maximum: 80 });
+});
+
+test('opponent dashboard excludes own team and sorts by remaining credits', () => {
+  const state = createInitialState(players);
+  state.assignments = [{ playerId: '1', teamId: 'team-2', price: 400, budgetRole: 'M' }, { playerId: 'x', teamId: 'team-3', price: 100, budgetRole: 'M' }];
+  assert.deepEqual(opponentSummaries(state).slice(-2).map((team) => team.id), ['team-3', 'team-2']);
+});
+
+test('league resize adds default teams and refuses to remove assigned teams', () => {
+  const initial = createInitialState(players);
+  assert.equal(resizeLeague(initial, 12).teams.length, 12);
+  const assigned = { ...initial, assignments: [{ playerId: '1', teamId: 'team-10', price: 10, budgetRole: 'M' }] };
+  assert.throws(() => resizeLeague(assigned, 9), /acquisti/);
 });

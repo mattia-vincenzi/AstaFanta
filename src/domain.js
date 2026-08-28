@@ -11,6 +11,8 @@ const DEFAULT_TEAMS = Array.from({ length: 10 }, (_, index) => ({
   rosterSize: 28,
 }));
 
+const defaultTeam = (index) => ({ id: `team-${index}`, name: `Squadra ${index}`, budget: 1000, rosterSize: 28 });
+
 const DEFAULT_ROLE_BUDGETS = Object.fromEntries(['P', 'D', 'E', 'M', 'C', 'W', 'T', 'A', 'Pc'].map((role) => [role, { slots: 0, min: 0, target: 0, max: 1000 }]));
 
 export const allowedBudgetRoles = (player) => Object.entries(ROLE_GROUPS)
@@ -33,6 +35,29 @@ export const teamSummary = (state, teamId) => {
   return { spent, remaining: team.budget - spent, players: assignments.length, slotsRemaining: team.rosterSize - assignments.length };
 };
 
+export const renameTeam = (state, teamId, name) => {
+  const team = state.teams.find((entry) => entry.id === teamId);
+  if (!team) throw new Error('Squadra non trovata');
+  const trimmedName = name.trim();
+  if (!trimmedName) throw new Error('Il nome della squadra è obbligatorio');
+  return {
+    ...state,
+    teams: state.teams.map((entry) => entry.id === teamId ? { ...entry, name: trimmedName } : entry),
+  };
+};
+
+export const resizeLeague = (state, count) => {
+  if (!Number.isInteger(count) || count < 2) throw new Error('Il numero di squadre deve essere almeno 2');
+  if (count < state.teams.length) {
+    const removed = state.teams.slice(count);
+    if (removed.some((team) => state.assignments.some((assignment) => assignment.teamId === team.id))) throw new Error('Non puoi rimuovere squadre con acquisti');
+  }
+  const teams = count <= state.teams.length
+    ? state.teams.slice(0, count)
+    : [...state.teams, ...Array.from({ length: count - state.teams.length }, (_, index) => defaultTeam(state.teams.length + index + 1))];
+  return { ...state, teams };
+};
+
 export const assignPlayer = (state, assignment) => {
   const player = state.players.find((entry) => entry.id === assignment.playerId);
   if (!player) throw new Error('Giocatore non trovato');
@@ -52,3 +77,16 @@ export const strategyWarnings = (state) => Object.entries(state.strategy?.roleBu
       ? [{ kind: 'maximum-exceeded', role, spent, limit: Number(budget.max) }]
       : [];
   });
+
+export const ownRoleSummaries = (state) => Object.entries(state.strategy?.roleBudgets || {})
+  .map(([role, budget]) => {
+    const spent = state.assignments.filter((item) => item.teamId === state.ownTeamId && item.budgetRole === role)
+      .reduce((total, item) => total + item.price, 0);
+    const target = Number(budget.target) || 0;
+    return { role, spent, target, remaining: target - spent, maximum: Number(budget.max) || 0 };
+  });
+
+export const opponentSummaries = (state) => state.teams
+  .filter((team) => team.id !== state.ownTeamId)
+  .map((team) => ({ ...team, ...teamSummary(state, team.id) }))
+  .sort((left, right) => right.remaining - left.remaining);
