@@ -19,3 +19,11 @@
 .role-card.budget-over>span:not(.role-badge),.role-card.budget-over small{color:#852323}
 .strategy-top{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
 @media(max-width:620px){button,.button{min-width:44px;min-height:44px}}
+
+/* Let the opponents table use the full dashboard panel instead of stopping at the compact cap. */
+.opponents{display:flex;flex-direction:column;min-height:0}
+.opponents .compact{flex:1;min-height:0;max-height:none}
+.opponents .compact table{height:100%}
+.opponents .own-team-row{background:#e7f4ec}
+.opponents .own-team-row:hover{background:#d9eee2}
+.own-team-label{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:999px;background:var(--brand);color:#fff;font-size:.62rem;font-weight:800;line-height:1.4;white-space:nowrap;vertical-align:middle}

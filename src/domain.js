@@ -189,6 +189,5 @@ export const ownRoleSummaries = (state) => {
 };
 
 export const opponentSummaries = (state) => state.teams
-  .filter((team) => team.id !== state.ownTeamId)
   .map((team) => ({ ...team, ...teamSummary(state, team.id) }))
   .sort((left, right) => right.remaining - left.remaining);

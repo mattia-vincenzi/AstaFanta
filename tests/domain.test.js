@@ -66,9 +66,11 @@ test('role dashboard calculates own spending and remaining target', () => {
   assert.deepEqual(ownRoleSummaries(state).find((item) => item.role === 'M'), { role: 'M', spent: 40, players: 1, slots: 3, minimum: 0, target: 60, remaining: 20, maximum: 80, targetBands: [] });
 });
 
-test('opponent dashboard excludes own team and sorts by remaining credits', () => {
+test('team dashboard includes own team and sorts by remaining credits', () => {
   const state = createInitialState(players);
   state.assignments = [{ playerId: '1', teamId: 'team-2', price: 400, budgetRole: 'M' }, { playerId: 'x', teamId: 'team-3', price: 100, budgetRole: 'M' }];
+  assert.equal(opponentSummaries(state).length, state.teams.length);
+  assert.ok(opponentSummaries(state).some((team) => team.id === state.ownTeamId));
   assert.deepEqual(opponentSummaries(state).slice(-2).map((team) => team.id), ['team-3', 'team-2']);
 });
 
