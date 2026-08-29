@@ -1,30 +1,30 @@
-# Web app locale per Asta Fantacalcio Mantra
+# Local Web App for a Fantacalcio Mantra Auction
 
-## Obiettivo
+## Goal
 
-Sostituire il workbook dell'asta con una web app locale, semplice da usare durante un'asta con dieci squadre. L'app gestisce giocatori, assegnazioni e budget senza formule Excel, macro, login o servizi esterni.
+Replace the auction workbook with a local web app that is easy to use during a ten-team auction. The app manages players, assignments, and budgets without Excel formulas, macros, login, or external services.
 
-## Funzioni
+## Features
 
-- Asta live: registra una cessione scegliendo giocatore, squadra, prezzo e ruolo budget.
-- Giocatori: ricerca, filtri per ruolo Mantra, squadra reale e disponibilità; ordinamento per quotazione, FVM e nome. Il catalogo è modificabile nell'app: si possono aggiungere, correggere ed eliminare giocatori liberi.
-- Squadre: riepilogo e rosa delle dieci squadre con budget iniziale, spesa, residuo, giocatori e slot rimanenti.
-- Strategia: nome della propria squadra, budget, dimensione rosa e tabella P/D/E/M/C/W/T/A/Pc con slot, minimo, obiettivo e massimo; priorità, tetto e note per giocatore.
-- Backup: esportazione e importazione JSON, oltre al ripristino esplicito dei dati iniziali.
+- Live auction: records a sale by selecting the player, team, price, and budget role.
+- Players: search and filters by Mantra role, real-world team, and availability; sorting by valuation, FVM, and name. The catalogue can be edited in the app: unassigned players can be added, corrected, and deleted.
+- Teams: summary and roster for all ten teams, including initial budget, spending, remaining budget, players, and remaining slots.
+- Strategy: own team name, budget, roster size, and a P/D/E/M/C/W/T/A/Pc table with slots, minimum, target, and maximum; priority, price cap, and notes per player.
+- Backup: JSON export and import, plus an explicit reset to the initial data.
 
-## Regole
+## Rules
 
-- Ogni giocatore ha un ID unico e può avere una sola assegnazione.
-- Un giocatore assegnato resta modificabile nei dati descrittivi, ma non eliminabile finché l'assegnazione non viene rimossa.
-- Ogni squadra inizia con 1000 crediti e 28 slot; i valori restano configurabili.
-- Prezzo e squadra sono obbligatori, con prezzo positivo; il ruolo budget deve essere compatibile con il giocatore.
-- Il superamento di budget richiede conferma ma non blocca l'asta.
-- Gli avvisi della strategia riguardano soltanto la squadra dell'utente e non bloccano l'assegnazione.
+- Each player has a unique ID and can have only one assignment.
+- An assigned player's descriptive data can still be edited, but the player cannot be deleted until the assignment is removed.
+- Each team starts with 1000 credits and 28 slots; these values remain configurable.
+- Price and team are required, the price must be positive, and the budget role must be compatible with the player.
+- Exceeding the budget requires confirmation but does not block the auction.
+- Strategy warnings apply only to the user's team and do not block the assignment.
 
-## Implementazione e verifica
+## Implementation and Verification
 
-App client-side in HTML, CSS e JavaScript, con dataset JSON statico e stato salvato in `localStorage`. Sono previsti test automatici per budget, assegnazioni, ruoli e backup, oltre alla verifica manuale dei flussi d'asta e del layout.
+Client-side app built with HTML, CSS, and JavaScript, using a static JSON dataset and state saved in `localStorage`. Automated tests cover budgets, assignments, roles, and backups, supplemented by manual verification of auction flows and layout.
 
-## Fuori ambito
+## Out of Scope
 
-Niente autenticazione, collaborazione simultanea, cloud, scraping, asta automatica o produzione Excel.
+No authentication, real-time collaboration, cloud services, scraping, automated auctions, or Excel output.

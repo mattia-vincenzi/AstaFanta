@@ -1,27 +1,27 @@
-# Web app Asta Fantacalcio Mantra Implementation Plan
+# Fantacalcio Mantra Auction Web App Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Costruire una web app locale che gestisca asta, budget e strategia di dieci squadre Mantra.
+**Goal:** Build a local web app that manages the auction, budgets, and strategy for ten Mantra teams.
 
-**Architecture:** Single-page application senza backend. La logica d'asta è in moduli JavaScript puri e testabili; l'interfaccia renderizza lo stato e lo salva in browser. Le quotazioni sono trasformate una volta in un JSON statico.
+**Architecture:** Single-page application with no backend. Auction logic lives in pure, testable JavaScript modules; the interface renders state and saves it in the browser. Player valuations are converted once into static JSON.
 
-**Tech Stack:** HTML5, CSS3, JavaScript ES modules, Node.js built-in test runner, `localStorage` e JSON.
+**Tech Stack:** HTML5, CSS3, JavaScript ES modules, Node.js built-in test runner, `localStorage`, and JSON.
 
 **Spec:** `docs/superpowers/specs/2026-08-28-fantacalcio-mantra-webapp-design.md`
 
 ## Global Constraints
 
-- Nessun login, backend o dipendenza runtime.
-- Dieci squadre con valori iniziali 1000 crediti e 28 slot, configurabili.
-- Un giocatore può avere una sola assegnazione; il ruolo budget scelto deve essere compatibile.
-- Il catalogo è editabile in-app; l'eliminazione è consentita solo per giocatori senza assegnazione.
-- Stato e Strategia sono persistiti in `localStorage` ed esportabili/importabili in JSON.
-- Solo dati mancanti, prezzo non positivo, ruolo incompatibile e doppia assegnazione bloccano una cessione.
+- No login, backend, or runtime dependency.
+- Ten teams with configurable initial values of 1000 credits and 28 slots.
+- A player can have only one assignment; the selected budget role must be compatible.
+- The catalogue is editable in-app; deletion is allowed only for unassigned players.
+- State and Strategy are persisted in `localStorage` and can be exported/imported as JSON.
+- Only missing data, a non-positive price, an incompatible role, and duplicate assignment block a sale.
 
 ---
 
-### Task 1: Modello d'asta e scaffold
+### Task 1: Auction model and scaffold
 
 **Files:**
 - Create: `package.json`, `index.html`, `src/domain.js`, `tests/domain.test.js`
@@ -52,7 +52,7 @@ test('assigned player cannot be sold twice', () => {
 - [ ] **Step 4: Run `npm test -- tests/domain.test.js`; verify two passing tests.**
 - [ ] **Step 5: Commit with `git add package.json index.html src/domain.js tests/domain.test.js && git commit -m "feat: add auction domain model"`.**
 
-### Task 2: Dataset e persistenza
+### Task 2: Dataset and persistence
 
 **Files:**
 - Create: `src/storage.js`, `src/players.json`, `tests/storage.test.js`
@@ -63,11 +63,11 @@ test('assigned player cannot be sold twice', () => {
 
 - [ ] **Step 1: Write a test that JSON export/import restores assignments exactly, plus a test where malformed storage JSON returns the supplied fallback.**
 - [ ] **Step 2: Run `npm test -- tests/storage.test.js`; verify it fails because `src/storage.js` is absent.**
-- [ ] **Step 3: Implement versioned JSON serialization and defensive parsing. Convert columns ID, RM, Nome, Squadra, Qt and FVM M of `Quotazioni_Fantacalcio_Stagione_2026_27.xlsx` to `src/players.json`, preserving normalized multi-roles. Add default strategy rows for P/D/E/M/C/W/T/A/Pc.**
+- [ ] **Step 3: Implement versioned JSON serialization and defensive parsing. Convert the ID, RM, Name, Team, Qt, and FVM M columns from `Quotazioni_Fantacalcio_Stagione_2026_27.xlsx` to `src/players.json`, preserving normalized multi-roles. Add default strategy rows for P/D/E/M/C/W/T/A/Pc.**
 - [ ] **Step 4: Run `npm test`; verify all tests pass.**
 - [ ] **Step 5: Commit with `git add src tests && git commit -m "feat: persist auction state locally"`.**
 
-### Task 3: Asta live e catalogo
+### Task 3: Live auction and catalogue
 
 **Files:**
 - Create: `src/app.js`, `src/render.js`, `src/styles.css`, `tests/render.test.js`
@@ -78,11 +78,11 @@ test('assigned player cannot be sold twice', () => {
 
 - [ ] **Step 1: Write a failing test asserting that an availability=free and role=M filter returns an unassigned M/C player but excludes an assigned P player.**
 - [ ] **Step 2: Run `npm test -- tests/render.test.js`; verify it fails because `src/render.js` is absent.**
-- [ ] **Step 3: Implement the Asta page: search, role/disponibilità filters, player table, cession form with compatible role choices, validation, negative-budget confirmation, save/rerender and undo last assignment.**
+- [ ] **Step 3: Implement the Auction page: search, role/availability filters, player table, sale form with compatible role choices, validation, negative-budget confirmation, save/rerender, and undo last assignment.**
 - [ ] **Step 4: Run `npm test`; verify all tests pass.**
 - [ ] **Step 5: Commit with `git add index.html src tests && git commit -m "feat: add live auction interface"`.**
 
-### Task 4: Squadre, Strategia, catalogo modificabile e backup
+### Task 4: Teams, Strategy, editable catalogue, and backup
 
 **Files:**
 - Modify: `src/domain.js`, `src/app.js`, `src/render.js`, `src/styles.css`

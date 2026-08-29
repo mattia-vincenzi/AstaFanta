@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Rendere il setup Classic coerente in dominio, dashboard, asta, Squadre, Strategia, catalogo e persistenza, mantenendo configurabili numero di squadre e crediti iniziali e fissando la rosa a 3 P, 8 D, 8 C e 6 A.
+**Goal:** Make the Classic setup consistent across the domain, dashboard, auction, Teams, Strategy, catalogue, and persistence, while keeping the number of teams and initial credits configurable and fixing the roster at 3 P, 8 D, 8 C, and 6 A.
 
-**Architecture:** Centralizzare in `src/domain.js` la configurazione dipendente dal setup e derivare da essa ruoli, quote e riepiloghi. `src/app.js` deve limitarsi a renderizzare il modello del dominio e a inoltrare azioni utente tramite un solo handler per azione. `src/storage.js` normalizza i backup prima che raggiungano l'interfaccia.
+**Architecture:** Centralize setup-dependent configuration in `src/domain.js` and derive roles, quotas, and summaries from it. `src/app.js` should only render the domain model and forward user actions through a single handler per action. `src/storage.js` normalizes backups before they reach the interface.
 
 **Tech Stack:** JavaScript ES modules, HTML/CSS, Node.js built-in test runner, localStorage, JSON catalogues.
 
@@ -12,34 +12,34 @@
 
 ## Global Constraints
 
-- Classic usa esclusivamente i ruoli `P`, `D`, `C`, `A` e quote fisse `3/8/8/6`; la dimensione rosa risultante è sempre 25.
-- Mantra conserva ruoli, strategia per ruolo e dimensione rosa correnti.
-- Numero squadre e budget iniziale sono configurabili in entrambi i setup; aggiungere una squadra deve ereditare la configurazione della lega corrente.
-- La Strategia riguarda soltanto la squadra selezionata come propria; non modifica i parametri delle avversarie.
-- Un backup privo di `setup` è migrato a Mantra; un backup Classic invalido viene normalizzato senza introdurre ruoli Mantra.
-- Ogni correzione parte da un test fallente e termina con l'intera suite verde.
+- Classic uses only the `P`, `D`, `C`, and `A` roles and fixed `3/8/8/6` quotas; the resulting roster size is always 25.
+- Mantra retains its current roles, per-role strategy, and roster size.
+- Team count and initial budget are configurable in both setups; adding a team must inherit the current league configuration.
+- Strategy applies only to the team selected as the user's own; it does not change opponents' parameters.
+- A backup without `setup` is migrated to Mantra; an invalid Classic backup is normalized without introducing Mantra roles.
+- Every fix starts with a failing test and ends with the entire suite passing.
 
 ---
 
-### Task 1: Centralizzare configurazione e invarianti dei setup
+### Task 1: Centralize Setup Configuration and Invariants
 
 **Files:**
 - Modify: `src/domain.js`
 - Modify: `tests/domain.test.js`
 
 **Interfaces:**
-- Add: `setupRules(setup)` restituisce ruoli, quote, roster e default della modalità.
-- Add: `roleSummaries(state, teamId)` restituisce per ogni ruolo `spent`, `players`, `slots`, `slotsRemaining` e, solo quando presenti, target e massimo strategici.
+- Add: `setupRules(setup)` returns the mode's roles, quotas, roster, and defaults.
+- Add: `roleSummaries(state, teamId)` returns `spent`, `players`, `slots`, and `slotsRemaining` for each role, plus strategic target and maximum only when present.
 - Modify: `createSetup`, `resizeLeague`, `assignPlayer`, `ownRoleSummaries`.
 
-- [ ] **Step 1: Scrivere test fallenti per regole Classic `P/D/C/A`, quote `3/8/8/6`, totale 25 e default Mantra invariati.**
-- [ ] **Step 2: Scrivere test fallenti per limiti di tutti e quattro i ruoli Classic, rosa complessiva piena e rifiuto di ruoli non Classic.**
-- [ ] **Step 3: Scrivere test fallente che l'aumento delle squadre in una lega Classic con budget personalizzato crei squadre con lo stesso budget e 25 slot.**
-- [ ] **Step 4: Implementare la configurazione centralizzata e rimuovere i default `1000/28` dal percorso di ridimensionamento.**
-- [ ] **Step 5: Implementare riepiloghi di ruolo indipendenti dai budget Mantra e verificare `node --test tests/domain.test.js`.**
+- [ ] **Step 1: Write failing tests for Classic `P/D/C/A` rules, `3/8/8/6` quotas, a total of 25, and unchanged Mantra defaults.**
+- [ ] **Step 2: Write failing tests for the limits of all four Classic roles, a full overall roster, and rejection of non-Classic roles.**
+- [ ] **Step 3: Write a failing test showing that adding teams to a Classic league with a custom budget creates teams with the same budget and 25 slots.**
+- [ ] **Step 4: Implement centralized configuration and remove the `1000/28` defaults from the resizing path.**
+- [ ] **Step 5: Implement role summaries independent of Mantra budgets and verify `node --test tests/domain.test.js`.**
 - [ ] **Step 6: Commit `git add src/domain.js tests/domain.test.js && git commit -m "fix: centralize classic league rules"`.**
 
-### Task 2: Normalizzare stato locale e backup
+### Task 2: Normalize Local State and Backups
 
 **Files:**
 - Modify: `src/storage.js`
@@ -47,16 +47,16 @@
 - Modify: `src/app.js`
 
 **Interfaces:**
-- Add: `normalizeState(state)` applicata da `importState` e `loadState`.
-- Preserve: formato backup versione 1, aggiungendo migrazione compatibile.
+- Add: `normalizeState(state)`, applied by `importState` and `loadState`.
+- Preserve: version 1 backup format, adding a compatible migration.
 
-- [ ] **Step 1: Scrivere test fallenti per backup legacy senza setup migrato a Mantra e backup Classic che conserva modalità, budget, numero squadre e quote.**
-- [ ] **Step 2: Scrivere test fallente per stato Classic incompleto che recupera `classicSlots` e roster 25 senza sostituire il catalogo personalizzato.**
-- [ ] **Step 3: Implementare la normalizzazione nello storage e rimuovere la migrazione ad hoc da `src/app.js`.**
-- [ ] **Step 4: Rendere il nome del file esportato dipendente dalla modalità (`asta-classic-backup.json` o `asta-mantra-backup.json`).**
-- [ ] **Step 5: Verificare `node --test tests/storage.test.js` e commit `git add src/storage.js src/app.js tests/storage.test.js && git commit -m "fix: normalize saved league setup"`.**
+- [ ] **Step 1: Write failing tests for a legacy backup without setup migrated to Mantra, and a Classic backup that preserves mode, budget, team count, and quotas.**
+- [ ] **Step 2: Write a failing test for incomplete Classic state that restores `classicSlots` and a 25-player roster without replacing the custom catalogue.**
+- [ ] **Step 3: Implement normalization in storage and remove the ad hoc migration from `src/app.js`.**
+- [ ] **Step 4: Make the exported filename depend on the mode (`asta-classic-backup.json` or `asta-mantra-backup.json`).**
+- [ ] **Step 5: Verify `node --test tests/storage.test.js` and commit `git add src/storage.js src/app.js tests/storage.test.js && git commit -m "fix: normalize saved league setup"`.**
 
-### Task 3: Correggere dashboard e intestazione Classic
+### Task 3: Fix the Classic Dashboard and Header
 
 **Files:**
 - Modify: `src/app.js`
@@ -66,17 +66,17 @@
 - Modify: `src/render.js`
 
 **Interfaces:**
-- Add in `src/render.js`: view-model puro per le card ruolo, testabile senza DOM.
-- Modify: `header()` e `dashboard()` per usare setup e riepiloghi del dominio.
+- Add in `src/render.js`: a pure view model for role cards, testable without the DOM.
+- Modify: `header()` and `dashboard()` to use setup and domain summaries.
 
-- [ ] **Step 1: Scrivere test fallenti: Classic espone quattro card nell'ordine `P/D/C/A`, ciascuna con giocatori acquistati, quota e slot residui; Mantra continua a mostrare spesa/target.**
-- [ ] **Step 2: Rendere il titolo dell'app e il contesto visivo coerenti con `Asta Classic` o `Asta Mantra`.**
-- [ ] **Step 3: In Classic sostituire “crediti al target” con occupazione reale (`2/3 acquistati`, `1 slot libero`) e indicare chiaramente i reparti completi.**
-- [ ] **Step 4: Mantenere nel pannello avversarie residuo, spesi e rosa, aggiungendo in Classic una sintesi compatta `P/D/C/A` senza allargare la dashboard.**
-- [ ] **Step 5: Verificare responsive layout e assenza di overflow con 4 card Classic e 9 card Mantra; eseguire `node --test tests/render.test.js`.**
+- [ ] **Step 1: Write failing tests: Classic exposes four cards in `P/D/C/A` order, each with purchased players, quota, and remaining slots; Mantra continues to show spending/target.**
+- [ ] **Step 2: Make the app title and visual context consistent with `Asta Classic` or `Asta Mantra`.**
+- [ ] **Step 3: In Classic, replace “credits to target” with actual occupancy (`2/3 purchased`, `1 slot available`) and clearly identify full departments.**
+- [ ] **Step 4: Keep remaining budget, spending, and roster in the opponents panel, adding a compact `P/D/C/A` summary in Classic without widening the dashboard.**
+- [ ] **Step 5: Verify the responsive layout and absence of overflow with 4 Classic cards and 9 Mantra cards; run `node --test tests/render.test.js`.**
 - [ ] **Step 6: Commit `git add src/app.js src/render.js src/ui-system.css tests/render.test.js && git commit -m "fix: align dashboard with league mode"`.**
 
-### Task 4: Rendere l'asta live consapevole delle quote Classic
+### Task 4: Make the Live Auction Aware of Classic Quotas
 
 **Files:**
 - Modify: `src/app.js`
@@ -85,16 +85,16 @@
 - Modify: `tests/domain.test.js`
 
 **Interfaces:**
-- Add: helper puro che restituisce i soli ruoli assegnabili per giocatore e squadra, escludendo gli slot Classic completi.
+- Add: a pure helper that returns only assignable roles for a player and team, excluding full Classic slots.
 
-- [ ] **Step 1: Scrivere test fallenti per selezione di un giocatore Classic, ruolo unico corretto e squadra con reparto pieno.**
-- [ ] **Step 2: Mostrare nel form di cessione soltanto ruoli compatibili col giocatore selezionato; in Classic disabilitare la conferma con messaggio esplicito se lo slot della squadra è esaurito.**
-- [ ] **Step 3: Conservare ricerca, focus e evidenziazione della riga selezionata durante ogni aggiornamento.**
-- [ ] **Step 4: Unificare i due handler `submit` di `sale-form` in un solo percorso, preservando controllo budget, feedback accessibile e persistenza.**
-- [ ] **Step 5: Verificare `node --test tests/domain.test.js tests/render.test.js`.**
+- [ ] **Step 1: Write failing tests for selecting a Classic player, the correct single role, and a team with a full department.**
+- [ ] **Step 2: Show only roles compatible with the selected player in the sale form; in Classic, disable confirmation with an explicit message if the team's slot is full.**
+- [ ] **Step 3: Preserve search, focus, and selected-row highlighting during every update.**
+- [ ] **Step 4: Unify the two `sale-form` `submit` handlers into a single path while preserving budget checks, accessible feedback, and persistence.**
+- [ ] **Step 5: Verify `node --test tests/domain.test.js tests/render.test.js`.**
 - [ ] **Step 6: Commit `git add src/app.js src/render.js tests/domain.test.js tests/render.test.js && git commit -m "fix: enforce classic slots in live auction"`.**
 
-### Task 5: Correggere Squadre e Strategia per Classic
+### Task 5: Fix Teams and Strategy for Classic
 
 **Files:**
 - Modify: `src/app.js`
@@ -102,17 +102,17 @@
 - Modify: `tests/render.test.js`
 
 **Interfaces:**
-- Add in `src/render.js`: view-model per rosa raggruppata per ruolo.
-- Modify: `teams()` e `strategy()` con rami espliciti per modalità.
+- Add in `src/render.js`: a view model for a roster grouped by role.
+- Modify: `teams()` and `strategy()` with explicit branches by mode.
 
-- [ ] **Step 1: Scrivere test fallenti per carta squadra Classic con conteggi `P/D/C/A`, giocatori raggruppati per reparto e reparto completo evidenziato.**
-- [ ] **Step 2: Nell'elenco espanso ordinare i giocatori per ruolo e poi nome, mostrando prezzo e badge ruolo in righe compatte; mantenere il pulsante rimozione distinguibile.**
-- [ ] **Step 3: In Strategia Classic mostrare solo la propria squadra, budget complessivo, spesa e quote fisse con occupazione; nascondere campi Mantra `min/target/max` e rendere non modificabile la dimensione 25.**
-- [ ] **Step 4: In Strategia Mantra conservare configurazione per ruolo e modifica della propria squadra; validare budget e dimensione rosa senza mutare direttamente gli oggetti di `state`.**
-- [ ] **Step 5: Nel tab Squadre mantenere il controllo del numero partecipanti per entrambe le modalità e mostrare il default/configurazione corrente senza confonderlo con Strategia.**
-- [ ] **Step 6: Eseguire `node --test tests/render.test.js` e commit `git add src/app.js src/render.js src/ui-system.css tests/render.test.js && git commit -m "fix: make teams and strategy mode aware"`.**
+- [ ] **Step 1: Write failing tests for a Classic team card with `P/D/C/A` counts, players grouped by department, and the full department highlighted.**
+- [ ] **Step 2: In the expanded list, sort players by role and then name, showing price and role badges in compact rows; keep the remove button distinguishable.**
+- [ ] **Step 3: In Classic Strategy, show only the user's team, overall budget, spending, and fixed quotas with occupancy; hide Mantra `min/target/max` fields and make the size of 25 read-only.**
+- [ ] **Step 4: In Mantra Strategy, retain per-role configuration and editing of the user's team; validate budget and roster size without directly mutating `state` objects.**
+- [ ] **Step 5: In the Teams tab, retain control of the participant count for both modes and show the current default/configuration without confusing it with Strategy.**
+- [ ] **Step 6: Run `node --test tests/render.test.js` and commit `git add src/app.js src/render.js src/ui-system.css tests/render.test.js && git commit -m "fix: make teams and strategy mode aware"`.**
 
-### Task 6: Validare il catalogo modificabile per modalità
+### Task 6: Validate the Editable Catalogue by Mode
 
 **Files:**
 - Modify: `src/app.js`
@@ -124,15 +124,15 @@
 - Verify: `src/players-classic.json`
 
 **Interfaces:**
-- Add: validazione giocatore contro i ruoli ammessi dal setup.
+- Add: player validation against the roles allowed by the setup.
 
-- [ ] **Step 1: Scrivere test fallenti che Classic accetti soltanto `P/D/C/A`, mentre Mantra conserva i ruoli multipli ammessi.**
-- [ ] **Step 2: Adattare placeholder, filtro ruolo e form di modifica al setup; prevenire salvataggi Classic con ruoli Mantra.**
-- [ ] **Step 3: Verificare con uno script read-only che il JSON Classic derivi dalle colonne Excel `R` e `FVM`, non `RM` e `FVM M`, e che ogni record abbia ID, nome, squadra, ruolo, Qt e FVM validi.**
-- [ ] **Step 4: Aggiungere ordinamento per tutte le colonne del catalogo senza perdere filtri o selezione.**
-- [ ] **Step 5: Eseguire `npm test` e commit `git add src/app.js src/domain.js src/render.js tests/domain.test.js tests/render.test.js && git commit -m "fix: validate catalogue roles by setup"`.**
+- [ ] **Step 1: Write failing tests showing that Classic accepts only `P/D/C/A`, while Mantra retains its allowed multiple roles.**
+- [ ] **Step 2: Adapt the placeholder, role filter, and edit form to the setup; prevent Classic saves with Mantra roles.**
+- [ ] **Step 3: Use a read-only script to verify that the Classic JSON derives from Excel columns `R` and `FVM`, not `RM` and `FVM M`, and that every record has valid ID, name, team, role, Qt, and FVM values.**
+- [ ] **Step 4: Add sorting for all catalogue columns without losing filters or selection.**
+- [ ] **Step 5: Run `npm test` and commit `git add src/app.js src/domain.js src/render.js tests/domain.test.js tests/render.test.js && git commit -m "fix: validate catalogue roles by setup"`.**
 
-### Task 7: Consolidare eventi e verificare i percorsi completi
+### Task 7: Consolidate Events and Verify Complete Flows
 
 **Files:**
 - Modify: `src/app.js`
@@ -140,23 +140,23 @@
 - Modify: `README.md`
 
 **Interfaces:**
-- Replace: listener duplicati per reset, selezione giocatore e submit con un solo dispatcher per tipo evento.
+- Replace: duplicate listeners for reset, player selection, and submit with a single dispatcher per event type.
 
-- [ ] **Step 1: Aggiungere test di regressione per creazione asta, ridimensionamento, cessione, reset e import, assicurando una sola transizione di stato per azione.**
-- [ ] **Step 2: Consolidare gli event listener e rimuovere i rami generici che possono interpretare `setup-form` o `league-size-form` come modifica giocatore.**
-- [ ] **Step 3: Aggiornare README con scelta iniziale, default Classic 8/500, rosa 3/8/8/6 e configurabilità di partecipanti/crediti in entrambe le modalità.**
-- [ ] **Step 4: Eseguire `npm test` e controllare che tutti i test siano verdi senza warning o errori console.**
-- [ ] **Step 5: Avviare la webapp locale e provare manualmente due scenari completi: Classic personalizzato e Mantra personalizzato, inclusi refresh, export/import, aumento squadre e reset.**
-- [ ] **Step 6: Controllare desktop e viewport mobile per dashboard, Squadre espanse, Strategia, catalogo e focus ricerca.**
+- [ ] **Step 1: Add regression tests for auction creation, resizing, sale, reset, and import, ensuring exactly one state transition per action.**
+- [ ] **Step 2: Consolidate event listeners and remove generic branches that can interpret `setup-form` or `league-size-form` as a player edit.**
+- [ ] **Step 3: Update the README with the initial choice, Classic 8/500 defaults, the 3/8/8/6 roster, and configurable participants/credits in both modes.**
+- [ ] **Step 4: Run `npm test` and check that all tests pass without warnings or console errors.**
+- [ ] **Step 5: Start the local web app and manually test two complete scenarios: custom Classic and custom Mantra, including refresh, export/import, adding teams, and reset.**
+- [ ] **Step 6: Check desktop and mobile viewports for the dashboard, expanded Teams, Strategy, catalogue, and search focus.**
 - [ ] **Step 7: Commit `git add src/app.js tests/render.test.js README.md && git commit -m "refactor: consolidate setup-aware interactions"`.**
 
-### Task 8: Verifica finale del branch
+### Task 8: Final Branch Verification
 
 **Files:**
 - Verify: all modified files
 
-- [ ] **Step 1: Eseguire `npm test` da una working tree pulita e registrare numero di test superati.**
-- [ ] **Step 2: Eseguire `git diff main...HEAD --check` e verificare che non esistano errori di whitespace.**
-- [ ] **Step 3: Cercare riferimenti UI hard-coded a Mantra (`rg -n "Asta Mantra|M/C|Pc|Dimensione rosa|1000|28" src README.md`) e classificare ogni occorrenza rimasta come intenzionale o correggerla.**
-- [ ] **Step 4: Verificare che nessun percorso Classic mostri ruoli diversi da `P/D/C/A` e che nessuna nuova squadra Classic riceva valori Mantra.**
-- [ ] **Step 5: Verificare `git status --short` e preparare il branch per revisione senza eseguire merge o push.**
+- [ ] **Step 1: Run `npm test` from a clean working tree and record the number of passing tests.**
+- [ ] **Step 2: Run `git diff main...HEAD --check` and verify that there are no whitespace errors.**
+- [ ] **Step 3: Search for hard-coded Mantra UI references (`rg -n "Asta Mantra|M/C|Pc|Dimensione rosa|1000|28" src README.md`) and classify each remaining occurrence as intentional or fix it.**
+- [ ] **Step 4: Verify that no Classic flow shows roles other than `P/D/C/A` and that no new Classic team receives Mantra values.**
+- [ ] **Step 5: Verify `git status --short` and prepare the branch for review without merging or pushing.**

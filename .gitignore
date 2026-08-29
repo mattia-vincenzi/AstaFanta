@@ -3,3 +3,14 @@ node_modules/
 test-results/
 playwright-report/
 premium-audit.json
+
+# Local tool runtime
+.superpowers/brainstorm/
+.impeccable/critique/
+
+# Local environment and generated output
+.env
+.env.*
+!.env.example
+coverage/
+*.log

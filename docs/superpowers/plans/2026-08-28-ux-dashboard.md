@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rendere l'asta più leggibile con una dashboard live della propria squadra e delle altre nove.
+**Goal:** Make the auction easier to read with a live dashboard for the user's team and the other nine teams.
 
-**Architecture:** Le statistiche restano funzioni pure in `src/domain.js`; `src/app.js` le renderizza nella schermata Asta e Squadre. Il CSS introduce componenti coerenti per KPI, carte ruolo, barre e classifica senza librerie esterne.
+**Architecture:** Statistics remain pure functions in `src/domain.js`; `src/app.js` renders them on the Auction and Teams screens. CSS introduces consistent components for KPIs, role cards, bars, and standings without external libraries.
 
 **Tech Stack:** HTML5, CSS3, JavaScript ES modules, Node.js built-in test runner.
 
@@ -12,14 +12,14 @@
 
 ## Global Constraints
 
-- Dashboard aggiornata da ogni modifica di assegnazioni e configurazione.
-- Budget per ruolo calcolato solo per la propria squadra e per `budgetRole`.
-- La classifica esclude la propria squadra e ordina per crediti residui decrescenti.
-- Nessun avviso blocca una cessione.
+- The dashboard updates after every assignment and configuration change.
+- Role budgets are calculated only for the user's team and by `budgetRole`.
+- The standings exclude the user's team and sort by remaining credits in descending order.
+- No warning blocks a sale.
 
 ---
 
-### Task 1: Statistiche di dashboard testabili
+### Task 1: Testable Dashboard Statistics
 
 **Files:**
 - Modify: `src/domain.js`
@@ -47,7 +47,7 @@ test('opponent summaries exclude the own team and order by remaining credits', (
 - [ ] **Step 4: Run `npm test`; verify all tests pass.**
 - [ ] **Step 5: Commit domain changes with `git add src/domain.js tests/domain.test.js && git commit -m "feat: add live dashboard summaries"`.**
 
-### Task 2: Command center e vista Squadre
+### Task 2: Command Center and Teams View
 
 **Files:**
 - Modify: `src/app.js`, `src/styles.css`
@@ -59,17 +59,17 @@ test('opponent summaries exclude the own team and order by remaining credits', (
 
 - [ ] **Step 1: Write a failing render helper test that marks a role state normal at or below target, amber above target and red above maximum.**
 - [ ] **Step 2: Run `npm test -- tests/render.test.js`; verify the helper import fails.**
-- [ ] **Step 3: Render dashboard above Asta live: own budget KPI, role cards and opponent table. Render the team list as uniform cards with residual budget, consumption bar, counters and expandable roster.**
+- [ ] **Step 3: Render the dashboard above Live Auction: own-budget KPI, role cards, and opponent table. Render the team list as uniform cards with remaining budget, a usage bar, counters, and an expandable roster.**
 - [ ] **Step 4: Add responsive CSS for dashboard grids, progress bars, role status colors, table hierarchy and card density.**
 - [ ] **Step 5: Run `npm test` and `node --check src/app.js`; verify both pass.**
 - [ ] **Step 6: Commit with `git add src/app.js src/styles.css src/render.js tests/render.test.js && git commit -m "feat: add auction command center"`.**
 
-### Task 3: Manual QA and documentation
+### Task 3: Manual QA and Documentation
 
 **Files:**
 - Modify: `README.md`
 
 - [ ] **Step 1: Document dashboard metrics and their update behavior.**
 - [ ] **Step 2: Run `npm test`; verify no failing test.**
-- [ ] **Step 3: Serve locally, record a sale and verify own-role spend, total budget and opponent remaining credits update without reload.**
+- [ ] **Step 3: Serve locally, record a sale, and verify that own-role spending, total budget, and opponents' remaining credits update without reloading.**
 - [ ] **Step 4: Commit with `git add README.md && git commit -m "docs: describe live dashboard"`.**

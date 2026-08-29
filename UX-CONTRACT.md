@@ -4,39 +4,39 @@
 
 | Capability | Canonical owner | Source of truth | Allowed variants | Verification |
 |---|---|---|---|---|
-| Table Selection | Righe selezionabili in `src/app.js` | Questo contratto | Mouse, Invio, Spazio | `tests/e2e/accessibility-responsive.spec.js` |
-| Select/Listbox | Select HTML nativo | Questo contratto | Popup gestito dalla piattaforma | Suite Playwright Chromium |
-| Form | Submit delegato e validazione dominio | `src/domain.js` | Setup, vendita, strategia, catalogo | Unit test ed E2E catalogo |
-| CRUD | Catalogo giocatori | Questo contratto | Crea, modifica, elimina libero | `tests/e2e/catalogue.spec.js` |
+| Table Selection | Selectable rows in `src/app.js` | This contract | Mouse, Enter, Space | `tests/e2e/accessibility-responsive.spec.js` |
+| Select/Listbox | Native HTML select | This contract | Platform-managed popup | Playwright Chromium suite |
+| Form | Delegated submit and domain validation | `src/domain.js` | Setup, sale, strategy, catalogue | Unit tests and catalogue E2E tests |
+| CRUD | Player catalogue | This contract | Unrestricted create, edit, and delete | `tests/e2e/catalogue.spec.js` |
 
-## Stato e modalità
+## State and modes
 
-- Senza stato salvato viene mostrata la scelta Mantra/Classic.
-- La modalità resta immutabile per tutta l'asta; “Nuova asta” richiede conferma e cancella lo stato locale.
-- Importazione, refresh ed esportazione mantengono modalità, catalogo modificato, squadre e assegnazioni.
+- When there is no saved state, the Mantra/Classic choice is displayed.
+- The mode remains immutable throughout the auction; “New auction” requires confirmation and clears local state.
+- Importing, refreshing, and exporting preserve the mode, modified catalogue, teams, and assignments.
 
-## Asta live
+## Live auction
 
-- La ricerca conserva focus e posizione del cursore durante il filtro.
-- Una riga selezionata è riconoscibile visivamente e operabile con Invio o Spazio.
-- Il ruolo proposto è compatibile con il giocatore; in Classic considera anche gli slot della squadra scelta.
-- Un reparto pieno blocca la conferma e mostra la causa prima del submit.
-- Ogni azione produce una sola transizione di stato e una conferma accessibile.
+- Search preserves focus and cursor position while filtering.
+- A selected row is visually identifiable and can be operated with Enter or Space.
+- The suggested role is compatible with the player; in Classic, it also accounts for the selected team's slots.
+- A full department blocks confirmation and displays the reason before submission.
+- Each action produces exactly one state transition and an accessible confirmation.
 
-## Squadre e strategia
+## Teams and strategy
 
-- Il numero di squadre si modifica soltanto nel tab Squadre; non si possono rimuovere squadre con acquisti.
-- Il nome di una squadra è modificabile soltanto nel tab Squadre; in Strategia si può selezionare la propria squadra ma non rinominarla.
-- La Strategia modifica soltanto la squadra impostata come propria.
-- Per ogni ruolo la Strategia permette di creare fasce target configurabili con nome, intervallo di crediti e lista libera di giocatori (uno per riga); le fasce sono persistite nei backup.
-- La dashboard Mantra mostra, per ogni ruolo, anche il numero aggiornato di giocatori acquistati.
-- In Classic la rosa è sempre 25 con quote 3P/8D/8C/6A; tali valori non sono editabili.
-- In Classic minimo, obiettivo e massimo di budget sono configurabili per `P/D/C/A`.
-- In entrambe le modalità le card ruolo usano il massimo configurato come denominatore: sono verdi sotto l'80%, gialle dall'80% al 100% incluso e rosse quando la spesa supera il massimo.
-- In Mantra slot e soglie di budget sono configurabili per ogni ruolo reale; i ruoli possono essere aggiunti o rimossi dalla Strategia.
+- The number of teams can be changed only in the Teams tab; teams with purchases cannot be removed.
+- A team's name can be changed only in the Teams tab; in Strategy, users can select their own team but cannot rename it.
+- Strategy modifies only the team designated as the user's own.
+- For each role, Strategy allows users to create configurable target tiers with a name, credit range, and free-form player list (one per line); tiers are persisted in backups.
+- For each role, the Mantra dashboard also shows the current number of players purchased.
+- In Classic, the squad always contains 25 players with quotas of 3P/8D/8C/6A; these values are not editable.
+- In Classic, minimum, target, and maximum budgets can be configured for `P/D/C/A`.
+- In both modes, role cards use the configured maximum as the denominator: they are green below 80%, yellow from 80% through 100% inclusive, and red when spending exceeds the maximum.
+- In Mantra, slots and budget thresholds can be configured for each real role; roles can be added or removed from Strategy.
 
-## Azioni distruttive ed errori
+## Destructive actions and errors
 
-- Eliminazione giocatore e nuova asta richiedono conferma.
-- I giocatori assegnati non possono essere eliminati dal catalogo.
-- Errori di quota, ruolo, dati mancanti o backup invalido restano recuperabili senza perdere lo stato corrente.
+- Deleting a player and starting a new auction require confirmation.
+- Assigned players cannot be deleted from the catalogue.
+- Quota, role, missing-data, and invalid-backup errors remain recoverable without losing the current state.

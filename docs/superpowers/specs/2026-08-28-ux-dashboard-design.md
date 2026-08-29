@@ -1,31 +1,31 @@
-# UX e dashboard live per Asta Mantra
+# UX and Live Dashboard for the Mantra Auction
 
-## Obiettivo
+## Goal
 
-Rendere l'app più leggibile e utile durante l'asta introducendo un Command center: una dashboard che espone immediatamente budget della propria squadra, spesa per ruolo e disponibilità delle altre nove squadre.
+Make the app easier to read and more useful during the auction by introducing a Command Center: a dashboard that immediately shows the user's team budget, spending by role, and the availability of the other nine teams.
 
-## Gerarchia dell'interfaccia
+## Interface Hierarchy
 
-- Testata con nome della propria squadra, budget residuo, spesa totale e slot rimanenti.
-- Dashboard in cima alla schermata Asta live, prima del modulo di cessione e del catalogo.
-- Sezione propria squadra: carte per ruolo P, D, E, M, C, W, T, A e Pc con speso, obiettivo, residuo e stato di attenzione.
-- Sezione altre squadre: tabella compatta ordinata per crediti residui, con speso, giocatori acquistati e slot rimanenti. La propria squadra non compare nella tabella.
-- Asta live in secondo piano gerarchico ma senza cambiare il flusso ricerca, selezione dal catalogo e assegnazione.
-- Vista Squadre come griglia di carte coerenti: budget residuo dominante, barra di consumo, contatori e rosa espandibile.
+- Header with the user's team name, remaining budget, total spending, and remaining slots.
+- Dashboard at the top of the Live Auction screen, before the sale form and catalogue.
+- Own-team section: cards for roles P, D, E, M, C, W, T, A, and Pc showing spent, target, remaining amount, and warning state.
+- Other-teams section: a compact table sorted by remaining credits, showing spending, players purchased, and remaining slots. The user's team does not appear in the table.
+- Live Auction has secondary visual priority without changing the search, catalogue selection, and assignment flow.
+- Teams view as a consistent card grid: prominent remaining budget, usage bar, counters, and expandable roster.
 
-## Dati e regole
+## Data and Rules
 
-- I valori derivano dalle assegnazioni esistenti e si aggiornano dopo vendita, annullamento, modifica, importazione e reset.
-- La spesa per ruolo considera soltanto le assegnazioni della squadra configurata come propria squadra e il relativo `budgetRole`.
-- Il residuo per ruolo usa `obiettivo - spesa`; se un obiettivo non è configurato, mostra solo la spesa.
-- Stato visivo: normale entro obiettivo, ambra oltre obiettivo, rosso oltre massimo. Gli avvisi restano non bloccanti.
-- Le altre squadre mostrano soltanto dati d'asta reali: nessun confronto strategico o ruolo imposto agli avversari.
+- Values are derived from existing assignments and update after a sale, cancellation, edit, import, or reset.
+- Spending by role includes only assignments for the team configured as the user's own team and their corresponding `budgetRole`.
+- Remaining budget by role uses `target - spending`; if no target is configured, only spending is shown.
+- Visual state: normal at or below target, amber above target, red above maximum. Warnings remain non-blocking.
+- Other teams show only actual auction data: no strategic comparisons or roles imposed on opponents.
 
-## Stile
+## Style
 
-Palette chiara e sobria, superficie bianca, accento verde petrolio per azioni e selezione, valori numerici grandi e contrastati. Tabelle dense solo dove servono; carte e spazio bianco per lettura immediata.
+Light, understated palette, white surfaces, and a teal accent for actions and selections, with large, high-contrast numeric values. Dense tables only where needed; cards and whitespace for immediate readability.
 
-## Verifica
+## Verification
 
-- Test della somma per ruolo, del filtro che esclude la propria squadra e dell'ordinamento per crediti residui.
-- Controllo manuale: una cessione aggiorna dashboard, ruoli e classifica senza ricaricare la pagina.
+- Test the sum by role, the filter that excludes the user's team, and sorting by remaining credits.
+- Manual check: a sale updates the dashboard, roles, and standings without reloading the page.

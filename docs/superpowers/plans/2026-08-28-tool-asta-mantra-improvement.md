@@ -2,171 +2,171 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** correggere i difetti bloccanti rilevati con Playwright e rendere aste, catalogo, budget, squadre e backup coerenti anche nei casi limite.
+**Goal:** Fix the blocking defects found with Playwright and make auctions, the catalogue, budgets, teams, and backups consistent even in edge cases.
 
-**Architecture:** mantenere la separazione esistente tra regole pure (`src/domain.js`), normalizzazione/persistenza (`src/storage.js`) e rendering/event handling (`src/app.js`). Ogni correzione deve avere prima una regressione di dominio o Playwright e deve preservare la modalità Mantra/Classic.
+**Architecture:** Maintain the existing separation between pure rules (`src/domain.js`), normalization/persistence (`src/storage.js`), and rendering/event handling (`src/app.js`). Every fix must first have a domain or Playwright regression test and must preserve Mantra/Classic mode.
 
 **Tech Stack:** JavaScript ES modules, Node test runner, HTML/CSS vanilla, Playwright Chromium.
 
-**Spec:** `docs/superpowers/plans/2026-08-28-qa-test-plan.md` e `UX-CONTRACT.md`.
+**Spec:** `docs/superpowers/plans/2026-08-28-qa-test-plan.md` and `UX-CONTRACT.md`.
 
 ## Global Constraints
 
-- La modalità dell’asta resta immutabile dopo la creazione.
-- Classic conserva rosa 25 e quote P/D/C/A pari a 3/8/8/6.
-- Mantra usa esclusivamente i ruoli reali (`Por`, `Dd`, `Ds`, `Dc`, `B`, `E`, `M`, `C`, `W`, `T`, `A`, `Pc`).
-- Import invalidi non devono sostituire né corrompere lo stato corrente.
-- Ogni azione distruttiva resta confermata e annullabile quando previsto dal contratto UX.
+- The auction mode remains immutable after creation.
+- Classic retains a 25-player roster and P/D/C/A quotas of 3/8/8/6.
+- Mantra uses only the actual roles (`Por`, `Dd`, `Ds`, `Dc`, `B`, `E`, `M`, `C`, `W`, `T`, `A`, `Pc`).
+- Invalid imports must not replace or corrupt the current state.
+- Every destructive action remains confirmed and reversible where required by the UX contract.
 
-### Task 1: Ripristinare salvataggio e modifica del catalogo (P0)
+### Task 1: Restore Catalogue Saving and Editing (P0)
 
 **Files:**
-- Modify: `src/app.js:126` — riconoscimento robusto del form catalogo senza usare `event.target.id` mascherabile dai controlli.
-- Modify: `src/app.js:87` — aggiungere label programmatiche ai sei campi del form.
-- Test: `tests/render.test.js` — coprire validazione/normalizzazione dei dati inseriti.
-- Create: `tests/e2e/catalogue.spec.js` — inserimento e modifica via click e tastiera.
+- Modify: `src/app.js:126` — robust catalogue form detection without using `event.target.id`, which controls can shadow.
+- Modify: `src/app.js:87` — add programmatic labels to the six form fields.
+- Test: `tests/render.test.js` — cover validation/normalization of entered data.
+- Create: `tests/e2e/catalogue.spec.js` — insertion and editing via click and keyboard.
 
 **Interfaces:**
-- Consumes: `validatePlayer(setup, player)` da `src/domain.js`.
-- Produces: submit catalogo che aggiorna o aggiunge una riga, persiste e richiude il form.
+- Consumes: `validatePlayer(setup, player)` from `src/domain.js`.
+- Produces: catalogue submission that updates or adds a row, persists it, and closes the form again.
 
 - [x] **Step 1: Write the failing test**
 
-  In Playwright, aprire Catalogo, cliccare “Aggiungi giocatore”, compilare ID `qa-1`, nome `Test`, squadra `QA`, ruolo `M`, quindi cliccare “Salva giocatore”. Assert: esiste una riga `qa-1` dopo il render e dopo un refresh.
+  In Playwright, open Catalogue, click “Add player,” enter ID `qa-1`, name `Test`, team `QA`, and role `M`, then click “Save player.” Assert: a `qa-1` row exists after rendering and after a refresh.
 
 - [x] **Step 2: Run test to verify it fails**
 
   Run: `npx playwright test tests/e2e/catalogue.spec.js -g "inserisce"`
 
-  Expected: FAIL perché il submit handler non entra nel ramo `player-form`.
+  Expected: FAIL because the submit handler does not enter the `player-form` branch.
 
 - [x] **Step 3: Implement minimal fix**
 
-  Usare un riferimento stabile (`event.target.matches('#player-form')` oppure una classe/data attribute non sovrascrivibile), aggiungere `type="submit"` esplicito e associare ogni input a una `<label for>`.
+  Use a stable reference (`event.target.matches('#player-form')` or a class/data attribute that cannot be shadowed), add an explicit `type="submit"`, and associate every input with a `<label for>`.
 
 - [x] **Step 4: Run focused verification**
 
   Run: `npx playwright test tests/e2e/catalogue.spec.js -g "inserisce"`
 
-  Expected: PASS; il record sopravvive al refresh.
+  Expected: PASS; the record survives the refresh.
 
 - [x] **Step 5: Add edit/delete regressions**
 
-  Verificare modifica di nome/ruolo, ID duplicato rifiutato con stato invariato, eliminazione di un libero con conferma e assenza del pulsante Elimina per un assegnato.
+  Verify name/role editing, rejection of a duplicate ID with unchanged state, confirmed deletion of an unassigned player, and absence of the Delete button for an assigned player.
 
-### Task 2: Rendere atomiche rose e budget (P1)
+### Task 2: Make Rosters and Budgets Atomic (P1)
 
 **Files:**
-- Modify: `src/domain.js:80-105` — validare capienza totale Mantra e input finanziari.
-- Modify: `src/app.js:119-126` — mostrare errori inline e non salvare budget inferiori alla spesa.
-- Test: `tests/domain.test.js` — capienza Mantra, budget e valori limite.
-- Create: `tests/e2e/budget-roster.spec.js` — flussi UI.
+- Modify: `src/domain.js:80-105` — validate total Mantra capacity and financial inputs.
+- Modify: `src/app.js:119-126` — show inline errors and do not save budgets below spending.
+- Test: `tests/domain.test.js` — Mantra capacity, budgets, and boundary values.
+- Create: `tests/e2e/budget-roster.spec.js` — UI flows.
 
 **Interfaces:**
 - Consumes: `teamSummary`, `assignPlayer`, `setupRules`.
-- Produces: assegnazione rifiutata quando `players >= rosterSize`; budget intero positivo e non inferiore alla spesa senza conferma esplicita.
+- Produces: assignment rejected when `players >= rosterSize`; budget must be a positive integer and cannot be lower than spending without explicit confirmation.
 
 - [x] **Step 1: Write failing domain tests**
 
-  Creare una rosa Mantra da 1 slot con un acquisto esistente e verificare che `assignPlayer` lanci `Rosa piena`. Creare una squadra con spesa 30 e verificare che l’aggiornamento a budget 1 sia rifiutato.
+  Create a one-slot Mantra roster with an existing purchase and verify that `assignPlayer` throws `Rosa piena`. Create a team with spending of 30 and verify that updating its budget to 1 is rejected.
 
 - [x] **Step 2: Run to verify failure**
 
   Run: `npm test -- --test-name-pattern="rosa piena|budget"`
 
-  Expected: FAIL prima dell’implementazione.
+  Expected: FAIL before implementation.
 
 - [x] **Step 3: Implement validation**
 
-  Controllare la capienza prima dei ruoli Classic; introdurre una validazione comune per budget/roster (`Number.isInteger`, minimo 1, confronto con `spent`) e mantenere lo stato immutato in caso d’errore.
+  Check capacity before Classic roles; introduce shared budget/roster validation (`Number.isInteger`, minimum 1, comparison with `spent`) and keep state unchanged on error.
 
 - [x] **Step 4: Verify UI**
 
   Run: `npx playwright test tests/e2e/budget-roster.spec.js`
 
-  Expected: la seconda assegnazione oltre capienza non cambia crediti/assegnazioni; il budget sotto spesa mostra l’errore e non salva.
+  Expected: the second over-capacity assignment does not change credits/assignments; a budget below spending shows the error and is not saved.
 
-### Task 3: Proteggere resize lega e riferimenti squadra (P1)
+### Task 3: Protect League Resizing and Team References (P1)
 
 **Files:**
-- Modify: `src/domain.js:57-78` — riallineare `ownTeamId` quando la squadra viene rimossa.
-- Modify: `src/app.js:70-73` — renderizzare sempre una squadra propria valida.
-- Test: `tests/domain.test.js` — resize con e senza acquisti della squadra propria.
-- Create: `tests/e2e/league-resize.spec.js` — riduzione/espansione via UI.
+- Modify: `src/domain.js:57-78` — realign `ownTeamId` when the team is removed.
+- Modify: `src/app.js:70-73` — always render a valid own team.
+- Test: `tests/domain.test.js` — resize with and without purchases by the user's team.
+- Create: `tests/e2e/league-resize.spec.js` — shrinking/expanding via the UI.
 
 - [x] **Step 1: Write failing test**
 
-  Impostare `ownTeamId` su `team-3`, ridurre da 3 a 2 squadre e verificare che il risultato punti a `team-1` (o alla prima squadra rimasta) e che nessuna funzione lanci `Squadra non trovata`.
+  Set `ownTeamId` to `team-3`, reduce from 3 to 2 teams, and verify that the result points to `team-1` (or the first remaining team) and that no function throws `Squadra non trovata`.
 
 - [x] **Step 2: Run to verify failure**
 
   Run: `npm test -- --test-name-pattern="ownTeamId|resize"`
 
-  Expected: FAIL perché `ownTeamId` resta `team-3`.
+  Expected: FAIL because `ownTeamId` remains `team-3`.
 
 - [x] **Step 3: Implement atomic resize**
 
-  Dopo la costruzione di `teams`, se `ownTeamId` non è presente assegnare il primo team rimasto; se una squadra da rimuovere ha acquisti, lasciare invariato l’intero stato.
+  After building `teams`, if `ownTeamId` is not present, assign the first remaining team; if a team to be removed has purchases, leave the entire state unchanged.
 
 - [x] **Step 4: Verify**
 
   Run: `npm test && npx playwright test tests/e2e/league-resize.spec.js`
 
-  Expected: resize valido senza errori e resize vietato completamente atomico.
+  Expected: valid resize without errors and a fully atomic rejected resize.
 
-### Task 4: Validare e isolare import/export (P1)
+### Task 4: Validate and Isolate Import/Export (P1)
 
 **Files:**
-- Modify: `src/storage.js:7-48` — schema validation di teams, ownTeamId, players e assignments.
-- Modify: `src/app.js:113-115` — import in variabile temporanea, sostituzione dello stato solo dopo validazione completa.
-- Test: `tests/storage.test.js` — JSON vuoto, schema incompleto, riferimenti mancanti, tipi non numerici.
-- Create: `tests/e2e/backup.spec.js` — export/import valido e rifiuto recuperabile.
+- Modify: `src/storage.js:7-48` — schema validation for teams, ownTeamId, players, and assignments.
+- Modify: `src/app.js:113-115` — import into a temporary variable and replace state only after complete validation.
+- Test: `tests/storage.test.js` — empty JSON, incomplete schema, missing references, and non-numeric types.
+- Create: `tests/e2e/backup.spec.js` — valid export/import and recoverable rejection.
 
 - [x] **Step 1: Write failing tests**
 
-  Importare `{version:1,state:{}}` e uno stato con assegnazione a team inesistente; verificare che `importState` lanci `Backup non valido` e che `loadState` mantenga il fallback.
+  Import `{version:1,state:{}}` and a state containing an assignment to a nonexistent team; verify that `importState` throws `Backup non valido` and that `loadState` retains the fallback.
 
 - [x] **Step 2: Run to verify failure**
 
   Run: `npm test -- --test-name-pattern="schema|Backup non valido|fallback"`
 
-  Expected: FAIL perché lo schema vuoto viene normalizzato e restituito.
+  Expected: FAIL because the empty schema is normalized and returned.
 
 - [x] **Step 3: Implement validation**
 
-  Validare almeno una squadra, `ownTeamId` esistente, ID giocatore univoci, riferimenti assegnazione esistenti, prezzi positivi e ruoli ammessi; nessuna mutazione del `state` corrente prima del commit.
+  Validate at least one team, an existing `ownTeamId`, unique player IDs, existing assignment references, positive prices, and allowed roles; do not mutate the current `state` before committing.
 
 - [x] **Step 4: Verify recovery**
 
   Run: `npx playwright test tests/e2e/backup.spec.js`
 
-  Expected: alert accessibile, nessun `pageerror`, stato precedente ancora visibile dopo import invalido.
+  Expected: accessible alert, no `pageerror`, and the previous state still visible after an invalid import.
 
-### Task 5: Complete catalogo, accessibilità e regressione continua (P2)
+### Task 5: Complete the Catalogue, Accessibility, and Continuous Regression Coverage (P2)
 
 **Files:**
-- Modify: `src/app.js:60-62,87-89` — indicare “120 di N” oppure paginare il catalogo; label/aria per filtri e righe.
-- Modify: `src/accessibility.css` — target touch minimi e focus coerente a 390 px.
-- Create: `tests/e2e/accessibility-responsive.spec.js` — viewport, focus, semantica e overflow.
-- Modify: `package.json` — script `test:e2e` che avvia server e Playwright.
+- Modify: `src/app.js:60-62,87-89` — show “120 of N” or paginate the catalogue; labels/ARIA for filters and rows.
+- Modify: `src/accessibility.css` — minimum touch targets and consistent focus at 390 px.
+- Create: `tests/e2e/accessibility-responsive.spec.js` — viewport, focus, semantics, and overflow.
+- Modify: `package.json` — `test:e2e` script that starts the server and Playwright.
 
 - [x] **Step 1: Write failing checks**
 
-  Verificare che ogni input abbia una label associata, che la tabella dichiari il limite dei 120 risultati e che a 390 px i controlli principali abbiano almeno 44 px di area cliccabile.
+  Verify that every input has an associated label, that the table states the 120-result limit, and that at 390 px the main controls have a clickable area of at least 44 px.
 
 - [x] **Step 2: Implement UI hardening**
 
-  Aggiungere label reali, `aria-selected` sulla riga selezionata, stato vuoto esplicito, indicazione/paginazione e dimensioni touch senza alterare la logica d’asta.
+  Add real labels, `aria-selected` on the selected row, an explicit empty state, result indication/pagination, and touch-friendly sizing without changing auction logic.
 
 - [x] **Step 3: Run complete gate**
 
   Run: `npm test && npm run test:e2e`
 
-  Expected: tutte le regressioni passano su Chromium a 390 px e 1280 px, senza `pageerror` o errori console.
+  Expected: all regression tests pass in Chromium at 390 px and 1280 px, without `pageerror` or console errors.
 
 ## Definition of Done
 
-- [x] I cinque difetti P0/P1 del report QA hanno regressioni automatiche verdi.
-- [x] `npm test` e `npm run test:e2e` passano con stato pulito e dopo un refresh.
-- [x] Nessuna importazione invalida altera il backup corrente.
-- [x] Le modifiche non introducono nuove violazioni di accessibilità o overflow responsive.
+- [x] The five P0/P1 defects in the QA report have passing automated regression tests.
+- [x] `npm test` and `npm run test:e2e` pass with clean state and after a refresh.
+- [x] No invalid import changes the current backup.
+- [x] The changes introduce no new accessibility violations or responsive overflow.

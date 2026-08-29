@@ -1,105 +1,105 @@
 # Tool Asta Mantra QA Test Plan
 
-**Goal:** validare la gestione dell’asta Mantra e Classic, impedendo stati finanziari, rosa e backup incoerenti.
+**Goal:** Validate Mantra and Classic auction management while preventing inconsistent financial, roster, and backup states.
 
-**Test approach:** test di dominio con `node --test` per le regole pure; test end-to-end Playwright su Chromium per le transizioni UI, con `localStorage` pulito a ogni scenario; smoke manuale a viewport desktop e mobile.
+**Test approach:** Domain tests with `node --test` for pure rules; Playwright end-to-end tests in Chromium for UI transitions, with clean `localStorage` for every scenario; manual smoke tests at desktop and mobile viewports.
 
-**Environment:** macOS, Chromium Playwright, server statico locale, cataloghi inclusi nel progetto. Ogni test E2E deve intercettare `pageerror`, `dialog` e console error; uno solo invalida lo scenario salvo che sia l’errore atteso.
+**Environment:** macOS, Playwright Chromium, local static server, and catalogues included in the project. Every E2E test must intercept `pageerror`, `dialog`, and console errors; a single occurrence invalidates the scenario unless it is the expected error.
 
-## Gate di regressione
+## Regression Gate
 
-- [ ] Eseguire `npm test`; risultato atteso: tutte le regole di dominio e storage passano.
-- [ ] Eseguire la suite Playwright in un browser pulito con `localStorage` vuoto.
-- [ ] Eseguire gli stessi flussi a 390 px e 1280 px; risultato atteso: nessun overflow della pagina, controlli raggiungibili e tabelle con scroll nel proprio contenitore.
-- [ ] Ripetere le azioni critiche con tastiera: Tab/Shift+Tab, Invio e Spazio sulle righe giocatore; risultato atteso: nessun trap e selezione/submit equivalenti al mouse.
+- [ ] Run `npm test`; expected result: all domain and storage rules pass.
+- [ ] Run the Playwright suite in a clean browser with empty `localStorage`.
+- [ ] Run the same flows at 390 px and 1280 px; expected result: no page overflow, reachable controls, and tables scrolling within their own container.
+- [ ] Repeat critical actions with the keyboard: Tab/Shift+Tab, Enter, and Space on player rows; expected result: no focus traps and selection/submission equivalent to mouse interaction.
 
-## 1. Avvio, modalità e persistenza
+## 1. Startup, Mode, and Persistence
 
-| Caso | Dati / azione | Risultato atteso |
+| Case | Data / action | Expected result |
 |---|---|---|
-| Primo avvio | Nessun `localStorage` | Pagina setup, Mantra predefinito (10, 1000, 28). |
-| Cambio modalità | Selezionare Classic | Valori 8, 500, 25 e pulsante aggiornati. |
-| Limiti setup | Squadre 1, vuoto, decimale; budget 0, negativo, vuoto; nome vuoto/spazi | Il browser e il dominio rifiutano il submit; stato assente. |
-| Setup custom | Mantra 2 squadre, 750 crediti, nome con apostrofo | Tutte le squadre hanno 750, nome escaped e squadra propria corretta. |
-| Refresh | Creare asta, modificare stato, ricaricare | Modalità, catalogo, squadre, strategia e assegnazioni restano identici. |
-| Nuova asta | Annullare e poi confermare dialog | Annulla non altera lo stato; conferma pulisce solo la chiave dell’app e torna al setup. |
+| First startup | No `localStorage` | Setup page, with Mantra defaults (10, 1000, 28). |
+| Change mode | Select Classic | Values update to 8, 500, and 25, and the button updates. |
+| Setup limits | 1 team, empty, decimal; budget 0, negative, empty; empty/whitespace-only name | The browser and domain reject submission; no state is created. |
+| Custom setup | Mantra with 2 teams, 750 credits, and a name containing an apostrophe | All teams have 750, the name is escaped, and the user's team is correct. |
+| Refresh | Create an auction, modify state, reload | Mode, catalogue, teams, strategy, and assignments remain identical. |
+| New auction | Cancel and then confirm the dialog | Cancel does not alter state; confirm clears only the app's key and returns to setup. |
 
-## 2. Asta live, filtri e assegnazioni
+## 2. Live Auction, Filters, and Assignments
 
-| Caso | Dati / azione | Risultato atteso |
+| Case | Data / action | Expected result |
 |---|---|---|
-| Ricerca | Nome, squadra, maiuscole/minuscole, spazi iniziali/finali, caratteri accentati | Solo i giocatori compatibili; focus e cursore restano nel campo. |
-| Nessun risultato | Query inesistente | Tabella vuota con messaggio esplicito e nessuna riga selezionabile. |
-| Filtro ruolo | Ogni ruolo Mantra e P/D/C/A Classic, poi reset | Solo ruoli richiesti; reset ripristina il catalogo libero. |
-| Catalogo grande | Oltre 120 risultati | Il conteggio e le righe visibili sono coerenti; paginazione o indicazione “120 di N” disponibile. |
-| Selezione | Click, Invio e Spazio su una riga | Stessa selezione, annuncio screen-reader e ruolo compatibile proposto. |
-| Prezzo | Vuoto, 0, negativo, decimale, testo, 1, importo > budget | Non registra valori non positivi/non numerici; l’eventuale superamento budget segue una sola policy esplicita e non produce saldi incoerenti. |
-| Doppia vendita | Confermare due volte lo stesso giocatore / usare doppio click | Una sola assegnazione; il giocatore sparisce dai liberi. |
-| Annulla e rimuovi | Assegnare, annullare ultimo acquisto; rimuovere dalla rosa | Crediti, slot, dashboard, catalogo e `localStorage` tornano coerenti. |
-| Rosa Mantra | Impostare rosa 1, assegnare 2 giocatori alla stessa squadra | La seconda assegnazione è bloccata; stessa verifica con rosa standard 28. |
-| Quota Classic | Riempire P (3), D (8), C (8), A (6), poi tentare un ulteriore giocatore per reparto | Messaggio chiaro e submit disabilitato; altri ruoli restano assegnabili. |
+| Search | Name, team, uppercase/lowercase, leading/trailing spaces, accented characters | Only matching players; focus and cursor remain in the field. |
+| No results | Nonexistent query | Empty table with an explicit message and no selectable rows. |
+| Role filter | Every Mantra role and Classic P/D/C/A, then reset | Only requested roles; reset restores the unassigned catalogue. |
+| Large catalogue | More than 120 results | The count and visible rows are consistent; pagination or a “120 of N” indication is available. |
+| Selection | Click, Enter, and Space on a row | Same selection, screen-reader announcement, and a compatible role is proposed. |
+| Price | Empty, 0, negative, decimal, text, 1, amount > budget | Does not record non-positive/non-numeric values; any budget overrun follows one explicit policy and does not produce inconsistent balances. |
+| Double sale | Confirm the same player twice / double-click | Only one assignment; the player disappears from the unassigned list. |
+| Undo and remove | Assign, undo the latest purchase; remove from roster | Credits, slots, dashboard, catalogue, and `localStorage` return to a consistent state. |
+| Mantra roster | Set roster to 1, assign 2 players to the same team | The second assignment is blocked; repeat the same check with the standard 28-player roster. |
+| Classic quota | Fill P (3), D (8), C (8), A (6), then attempt one additional player per department | Clear message and disabled submission; other roles remain assignable. |
 
-## 3. Squadre, budget e numero partecipanti
+## 3. Teams, Budget, and Participant Count
 
-| Caso | Dati / azione | Risultato atteso |
+| Case | Data / action | Expected result |
 |---|---|---|
-| Rinomina | Nome valido, solo spazi, markup HTML, duplicato | Obbligatorio e escaped; nessuna perdita delle configurazioni di squadra. |
-| Espansione lega | Da 2 a 12 in entrambi i setup | ID univoci, budget della lega invariato, 28/25 slot corretti. |
-| Riduzione senza acquisti | Ridurre rimuovendo squadre vuote, inclusa l’attuale squadra propria | `ownTeamId` viene riallineato a una squadra esistente. |
-| Riduzione con acquisti | Acquisto nella prima squadra da rimuovere | Rifiuto atomico: numero, squadre e assegnazioni invariati. |
-| Budget strategia | Ridurre budget sotto il già speso; svuotare il campo; impostare 1 e valori molto grandi | Il budget deve essere intero, >= 1 e >= spesa o richiedere conferma esplicita senza saldo negativo silenzioso. |
-| Budget concorrenti | Acquisti a tutte le squadre, ordinamento dashboard | Residui e spesi corretti; ordinamento stabile a parità. |
+| Rename | Valid name, whitespace only, HTML markup, duplicate | Required and escaped; no loss of team configuration. |
+| League expansion | From 2 to 12 in both setups | Unique IDs, unchanged league budget, correct 28/25 slots. |
+| Reduction without purchases | Reduce by removing empty teams, including the current user's team | `ownTeamId` is realigned to an existing team. |
+| Reduction with purchases | Purchase on the first team to be removed | Atomic rejection: count, teams, and assignments remain unchanged. |
+| Strategy budget | Reduce budget below existing spending; clear the field; set 1 and very large values | Budget must be an integer, >= 1 and >= spending, or require explicit confirmation without a silent negative balance. |
+| Opponent budgets | Purchases for every team, dashboard sorting | Correct remaining amounts and spending; stable sorting for ties. |
 
-## 4. Strategia
+## 4. Strategy
 
-| Caso | Dati / azione | Risultato atteso |
+| Case | Data / action | Expected result |
 |---|---|---|
-| Mantra ruoli | Rimuovere e riaggiungere ciascuno dei 12 ruoli | Solo ruoli validi; valori predefiniti coerenti col budget della squadra propria. |
-| Soglie Mantra | Min/target/max a 0, valori grandi, max inferiore a target/min, max superato da acquisto | Validazione coerente; warning leggibile e associato al ruolo. |
-| Slot Mantra | 0, 1, 28, > rosa | Non consente piani impossibili oppure li segnala chiaramente; l’asta applica la regola definita. |
-| Classic | Cambiare P/D/C/A, tentare di modificare slot e dimensione rosa | Solo min/target/max modificabili; quote 3/8/8/6 e rosa 25 immutabili. |
-| Cambio squadra propria | Cambiare squadra e poi ridurre la lega | Strategia, nome e budget appartengono alla squadra selezionata; nessun riferimento orfano. |
+| Mantra roles | Remove and re-add each of the 12 roles | Only valid roles; default values consistent with the user's team budget. |
+| Mantra thresholds | Min/target/max at 0, large values, max below target/min, max exceeded by a purchase | Consistent validation; readable warning associated with the role. |
+| Mantra slots | 0, 1, 28, > roster | Prevents impossible plans or flags them clearly; the auction applies the defined rule. |
+| Classic | Change P/D/C/A, attempt to modify slots and roster size | Only min/target/max editable; 3/8/8/6 quotas and 25-player roster immutable. |
+| Change user's team | Change team and then reduce the league | Strategy, name, and budget belong to the selected team; no orphan references. |
 
-## 5. Catalogo giocatori
+## 5. Player Catalogue
 
-| Caso | Dati / azione | Risultato atteso |
+| Case | Data / action | Expected result |
 |---|---|---|
-| Inserimento | Tutti i campi validi, ruoli multipli Mantra, ogni ruolo Classic | Nuova riga salvata e filtrabile/assegnabile. |
-| Validazione | ID/nome/squadra/ruolo vuoti, ruolo non valido, spazi, Qt/FVM negativi o non numerici | Errore recuperabile e stato invariato. |
-| ID | Inserire ID duplicato e modificare l’ID di una riga esistente | Errore di unicità oppure UX esplicita di modifica; mai sovrascrittura/duplicazione silenziosa. |
-| Modifica | Correggere nome, squadra, ruoli, Qt e FVM di libero e assegnato | I riferimenti dell’assegnazione restano validi; ruoli incompatibili non corrompono rosa/quote. |
-| Eliminazione | Cancellare libero (annulla/conferma), tentare assegnato | Dialog per il libero; assegnato non eliminabile né aggirabile dalla UI. |
-| XSS testo | Nome/squadra con `<script>` e virgolette | Renderizzato come testo, senza esecuzione né markup rotto. |
+| Insertion | All fields valid, multiple Mantra roles, every Classic role | New row saved and available for filtering/assignment. |
+| Validation | Empty ID/name/team/role, invalid role, whitespace, negative or non-numeric Qt/FVM | Recoverable error and unchanged state. |
+| ID | Insert a duplicate ID and modify an existing row's ID | Uniqueness error or explicit edit UX; never silent overwrite/duplication. |
+| Edit | Correct name, team, roles, Qt, and FVM for unassigned and assigned players | Assignment references remain valid; incompatible roles do not corrupt rosters/quotas. |
+| Deletion | Delete unassigned player (cancel/confirm), attempt assigned player | Dialog for the unassigned player; assigned player cannot be deleted or bypassed through the UI. |
+| Text XSS | Name/team containing `<script>` and quotation marks | Rendered as text, without execution or broken markup. |
 
-## 6. Backup, import e migrazioni
+## 6. Backup, Import, and Migrations
 
-| Caso | Dati / azione | Risultato atteso |
+| Case | Data / action | Expected result |
 |---|---|---|
-| Export/import valido | Stato Mantra e Classic con modifiche, assegnazioni e strategia | File versionato; import ripristina ogni elemento senza cambiare modalità. |
-| JSON invalido | Sintassi rotta, file vuoto, annullamento selezione file | Alert recuperabile, stato corrente intatto. |
-| Schema invalido | `{version:1,state:{}}`, tipi errati, squadra/giocatore/assegnazione mancanti | Rifiutato prima del render; nessuna `pageerror` e nessun salvataggio corrotto. |
-| Dati malevoli | Prezzo stringa/NaN, ID duplicati, assegnazione a team/player assente, ruoli Classic invalidi | Rifiutati o normalizzati con messaggio; invarianti mantenute. |
-| Migrazione legacy | Mantra P/D, Classic con roster diverso | Migrazione prevista dai test storage; nessun ruolo o slot perso. |
+| Valid export/import | Modified Mantra and Classic state with assignments and strategy | Versioned file; import restores every element without changing mode. |
+| Invalid JSON | Broken syntax, empty file, canceled file selection | Recoverable alert, current state intact. |
+| Invalid schema | `{version:1,state:{}}`, incorrect types, missing team/player/assignment | Rejected before rendering; no `pageerror` and no corrupted save. |
+| Malicious data | String/NaN price, duplicate IDs, assignment to missing team/player, invalid Classic roles | Rejected or normalized with a message; invariants maintained. |
+| Legacy migration | Mantra P/D, Classic with a different roster | Migration covered by storage tests; no roles or slots lost. |
 
-## 7. Accessibilità, responsive e prestazioni
+## 7. Accessibility, Responsiveness, and Performance
 
-- [ ] Ogni input del catalogo ha una label programmatica, non solo placeholder; errori collegati con `aria-describedby` e annunciati.
-- [ ] Righe giocatore sono controlli semanticamente annunciati, con stato `aria-selected`; tab order e focus dopo ogni render restano prevedibili.
-- [ ] Tutti i pulsanti, inclusi `Modifica`, `Elimina` e `Rimuovi`, hanno target touch >= 44×44 px a 390 px.
-- [ ] Verificare 390/768/1280 px, zoom 200% e testo ingrandito: no taglio di tabelle, moduli o nomi squadra.
-- [ ] Con catalogo completo verificare ricerca rapida: nessun input perso, nessuna latenza percepibile, nessun errore console.
+- [ ] Every catalogue input has a programmatic label, not only a placeholder; errors are linked with `aria-describedby` and announced.
+- [ ] Player rows are semantically announced controls with `aria-selected` state; tab order and focus remain predictable after every render.
+- [ ] All buttons, including `Modifica`, `Elimina`, and `Rimuovi`, have touch targets >= 44×44 px at 390 px.
+- [ ] Verify at 390/768/1280 px, 200% zoom, and enlarged text: no clipping of tables, forms, or team names.
+- [ ] With the full catalogue, verify fast search: no lost input, no perceptible latency, no console errors.
 
-## Difetti confermati da Playwright (2026-08-28)
+## Defects Confirmed by Playwright (2026-08-28)
 
-1. **P0 — Catalogo non salvabile.** `src/app.js:126`: il controllo `event.target.id === 'player-form'` fallisce perché il campo `name="id"` maschera `HTMLFormElement.id`. Click e Invio producono zero eventi di submit gestiti: non funzionano aggiunta e modifica giocatore.
-2. **P1 — Limite rosa Mantra non applicato.** Con rosa impostata a 1, l’E2E ha registrato 2 giocatori. `assignPlayer` applica quote solo in Classic.
-3. **P1 — Riducendo la lega si può rimuovere la squadra propria vuota.** Dopo team-3 -> 2 squadre, lo stato conserva `ownTeamId: team-3`, che non esiste; le viste successive possono generare `Squadra non trovata`.
-4. **P1 — Budget può scendere sotto la spesa.** In Classic, dopo 30 crediti spesi, Strategia accetta budget 1 e produce residuo negativo senza conferma.
-5. **P1 — Backup con schema invalido accettato.** Importare `{version:1,state:{}}` persiste lo stato e genera `pageerror: Squadra non trovata`, in contrasto con il contratto di recuperabilità.
+1. **P0 — Catalogue cannot be saved.** `src/app.js:126`: the `event.target.id === 'player-form'` check fails because the `name="id"` field shadows `HTMLFormElement.id`. Clicking and pressing Enter produce zero handled submit events: adding and editing players do not work.
+2. **P1 — Mantra roster limit not enforced.** With the roster set to 1, the E2E test recorded 2 players. `assignPlayer` enforces quotas only in Classic.
+3. **P1 — Reducing the league can remove the empty user's team.** After team-3 -> 2 teams, state retains the nonexistent `ownTeamId: team-3`; subsequent views can produce `Squadra non trovata`.
+4. **P1 — Budget can fall below spending.** In Classic, after spending 30 credits, Strategy accepts a budget of 1 and produces a negative balance without confirmation.
+5. **P1 — Backup with invalid schema accepted.** Importing `{version:1,state:{}}` persists the state and produces `pageerror: Squadra non trovata`, contrary to the recoverability contract.
 
-## Automazione raccomandata
+## Recommended Automation
 
-- Estendere `tests/domain.test.js` con invarianti di rosa, budget e `ownTeamId` dopo `resizeLeague`.
-- Estendere `tests/storage.test.js` con validazione di schema e riferimenti incrociati.
-- Aggiungere `tests/e2e/auction.spec.js`, `catalogue.spec.js`, `league.spec.js` e `backup.spec.js` per i casi delle sezioni 1–6; ogni difetto confermato deve avere prima un test rosso.
-- Eseguire `npm test` e la suite Playwright in CI su Chromium prima di ogni rilascio.
+- Extend `tests/domain.test.js` with roster, budget, and `ownTeamId` invariants after `resizeLeague`.
+- Extend `tests/storage.test.js` with schema and cross-reference validation.
+- Add `tests/e2e/auction.spec.js`, `catalogue.spec.js`, `league.spec.js`, and `backup.spec.js` for the cases in sections 1–6; every confirmed defect must first have a failing test.
+- Run `npm test` and the Playwright suite in CI on Chromium before every release.

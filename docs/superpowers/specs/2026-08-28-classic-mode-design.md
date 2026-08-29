@@ -1,49 +1,49 @@
-# Setup Mantra e Classic
+# Mantra and Classic Setup
 
-## Obiettivo
+## Goal
 
-Consentire la creazione di una nuova asta scegliendo, una sola volta all'avvio, il setup Mantra o Classic. La scelta determina dataset, ruoli, valori iniziali e vincoli della rosa.
+Allow users to create a new auction by choosing the Mantra or Classic setup once at startup. The choice determines the dataset, roles, initial values, and roster constraints.
 
-## Schermata iniziale
+## Initial Screen
 
-All'avvio senza un'asta configurata, l'app mostra due setup:
+At startup, when no auction has been configured, the app shows two setups:
 
-- **Mantra:** 10 squadre, 1000 crediti, rosa da 28; conserva il dataset e i ruoli Mantra esistenti.
-- **Classic:** 8 squadre, 500 crediti, rosa da 25 composta da 3 P, 8 D, 8 C e 6 A.
+- **Mantra:** 10 teams, 1000 credits, 28-player roster; retains the existing Mantra dataset and roles.
+- **Classic:** 8 teams, 500 credits, 25-player roster consisting of 3 P, 8 D, 8 C, and 6 A.
 
-Prima di creare l'asta, in entrambi i setup l'utente può modificare:
+Before creating the auction, users can change the following in either setup:
 
-- numero di squadre, con minimo 2;
-- budget iniziale per squadra, intero positivo;
-- nome della propria squadra.
+- number of teams, with a minimum of 2;
+- initial budget per team, as a positive integer;
+- their own team name.
 
-La scelta è bloccata dopo la creazione. Per cambiare setup l'utente usa Reset, che crea una nuova asta e cancella lo stato locale dell'asta corrente dopo conferma.
+The choice is locked after creation. To change setup, the user selects Reset, which creates a new auction and deletes the current auction's local state after confirmation.
 
-## Dati Classic
+## Classic Data
 
-Il catalogo Classic deriva da `Quotazioni_Fantacalcio_Stagione_2026_27.xlsx`:
+The Classic catalogue is derived from `Quotazioni_Fantacalcio_Stagione_2026_27.xlsx`:
 
 - `ID`: colonna A;
-- ruolo Classic: colonna B (`R`);
-- nome: colonna D;
-- squadra: colonna E;
-- quotazione: colonna F (`Qt.A`);
+- Classic role: column B (`R`);
+- name: column D;
+- team: column E;
+- valuation: column F (`Qt.A`);
 - FVM: colonna L (`FVM`).
 
-Il JSON Classic è statico nell'app e conserva un solo ruolo per giocatore. I ruoli ammessi sono P, D, C e A.
+The Classic JSON is static in the app and retains a single role per player. The allowed roles are P, D, C, and A.
 
-## Regole della rosa Classic
+## Classic Roster Rules
 
-- Ogni squadra ha 25 slot fissi: P 3, D 8, C 8, A 6.
-- Un'assegnazione Classic deve usare il ruolo del giocatore e non può superare lo slot di quel ruolo per la squadra acquirente.
-- Dashboard e carte Squadre mostrano occupazione per ruolo e avvisano quando una categoria è completa.
-- Le configurazioni strategiche di budget rimangono una funzione della sola propria squadra; Classic mostra solo spesa e slot per ruolo, senza budget Mantra per ruolo.
+- Each team has 25 fixed slots: P 3, D 8, C 8, A 6.
+- A Classic assignment must use the player's role and cannot exceed that role's slot limit for the purchasing team.
+- The dashboard and Team cards show occupancy by role and warn when a category is full.
+- Strategic budget configurations remain exclusive to the user's own team; Classic shows only spending and slots by role, without Mantra role budgets.
 
-## Persistenza e compatibilità
+## Persistence and Compatibility
 
-Lo stato locale include `setup: "mantra" | "classic"`, configurazione lega e giocatori del setup scelto. I backup esportati includono la modalità. I backup privi di setup vengono trattati come Mantra per compatibilità.
+Local state includes `setup: "mantra" | "classic"`, league configuration, and players for the selected setup. Exported backups include the mode. Backups without a setup are treated as Mantra for compatibility.
 
-## Verifica
+## Verification
 
-- Test per default Mantra e Classic, modifica di squadre/budget, ruolo e quote Classic, slot Classic e blocco della scelta dopo configurazione.
-- Controllo manuale: scegliere Classic, modificare squadre e budget, assegnare un portiere, verificare dashboard e blocco del quarto portiere.
+- Tests for Mantra and Classic defaults, team/budget changes, Classic roles and valuations, Classic slots, and locking the choice after configuration.
+- Manual check: select Classic, change teams and budget, assign a goalkeeper, then verify the dashboard and that a fourth goalkeeper is blocked.

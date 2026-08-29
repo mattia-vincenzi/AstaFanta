@@ -1,28 +1,28 @@
 # Design context
 
-## Intento
+## Intent
 
-Tool operativo locale per un'asta di fantacalcio. Deve essere leggibile rapidamente durante una sessione concitata, con priorità a crediti, disponibilità dei giocatori e composizione delle rose.
+A local operational tool for a fantasy football auction. It must be easy to scan during a fast-paced session, prioritizing credits, player availability, and squad composition.
 
-## Linguaggio visivo
+## Visual language
 
-- Direzione: tabellone d'asta sobrio, compatto e ad alto contrasto.
-- Superfici: fondo verde-grigio chiaro, pannelli bianchi, separatori netti senza ombre decorative.
-- Colore primario: verde petrolio `#0d5c53`; variante scura `#08423b`.
-- Accento funzionale: verde `#177245` per reparti completi, rosso `#a93232` per errori o rimozioni.
-- Tipografia: stack di sistema per velocità locale; numeri con cifre tabulari nelle metriche.
-- Raggi: 7px per controlli, 10–12px per pannelli. Nessuna card oltre 16px.
+- Direction: understated, compact, high-contrast auction board.
+- Surfaces: light green-gray background, white panels, and crisp separators without decorative shadows.
+- Primary color: petrol green `#0d5c53`; dark variant `#08423b`.
+- Functional accent: green `#177245` for complete departments, red `#a93232` for errors or removals.
+- Typography: system stack for fast local rendering; tabular figures for metrics.
+- Radii: 7px for controls, 10–12px for panels. No card above 16px.
 
-## Componenti distintivi
+## Distinctive components
 
-- I badge ruolo sono l'elemento identificativo trasversale a dashboard, rose, strategia e catalogo.
-- Classic usa sempre l'ordine `P, D, C, A`, visualizza occupazione/quota e mantiene i quattro ruoli fissi in Strategia.
-- Mantra usa i ruoli reali `Por, Dd, Ds, Dc, B, E, M, C, W, T, A, Pc`; la dashboard visualizza soltanto quelli attivati in Strategia.
+- Role badges are the identifying element used consistently across the dashboard, squads, strategy, and catalogue.
+- Classic always uses the order `P, D, C, A`, displays occupancy/quota, and keeps the four roles fixed in Strategy.
+- Mantra uses the real roles `Por, Dd, Ds, Dc, B, E, M, C, W, T, A, Pc`; the dashboard displays only those enabled in Strategy.
 
-## Accessibilità e layout
+## Accessibility and layout
 
-- Focus visibile da tastiera su controlli, righe selezionabili e summary.
-- Testo ordinario con contrasto minimo WCAG AA.
-- Tabelle dentro contenitori scorrevoli; nessun contenuto deve forzare la larghezza della pagina.
-- Dashboard: tre zone su desktop, due sotto 1180px, una sotto 820px.
-- Animazioni limitate agli indicatori di avanzamento e disattivate con `prefers-reduced-motion`.
+- Visible keyboard focus on controls, selectable rows, and summary elements.
+- Body text with at least WCAG AA contrast.
+- Tables inside scrollable containers; no content may force the page width.
+- Dashboard: three regions on desktop, two below 1180px, and one below 820px.
+- Animations limited to progress indicators and disabled with `prefers-reduced-motion`.
