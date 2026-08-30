@@ -7,6 +7,7 @@ premium-audit.json
 # Local tool runtime
 .superpowers/brainstorm/
 .impeccable/critique/
+.worktrees/
 
 # Local environment and generated output
 .env
