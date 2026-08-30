@@ -9,11 +9,11 @@ test('loads both catalogues relative to the app module under a project subpath',
     return { ok: true, json: async () => [{ id: String(requested.length) }] };
   };
 
-  const result = await loadCatalogues(fetchImpl, 'https://example.github.io/AstaFanta/src/app.js');
+  const result = await loadCatalogues(fetchImpl, 'https://example.github.io/AstaManager/src/app.js');
 
   assert.deepEqual(requested, [
-    'https://example.github.io/AstaFanta/src/players.json',
-    'https://example.github.io/AstaFanta/src/players-classic.json',
+    'https://example.github.io/AstaManager/src/players.json',
+    'https://example.github.io/AstaManager/src/players-classic.json',
   ]);
   assert.equal(result.mantraPlayers.length, 1);
   assert.equal(result.classicPlayers.length, 1);

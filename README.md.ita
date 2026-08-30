@@ -46,7 +46,7 @@ Apri [http://localhost:8080](http://localhost:8080) e scegli la modalità di gio
 
 ## Pubblicazione con GitHub Pages
 
-L’applicazione è consultabile su [mattia-vincenzi.github.io/AstaFanta](https://mattia-vincenzi.github.io/AstaFanta/).
+L’applicazione è consultabile su [mattia-vincenzi.github.io/AstaManager](https://mattia-vincenzi.github.io/AstaManager/).
 
 In **Settings → Pages → Build and deployment**, seleziona **GitHub Actions** come sorgente. Il workflow `Deploy to GitHub Pages` esegue i test unitari e pubblica l’applicazione statica dopo ogni push su `main`; può anche essere avviato manualmente dalla scheda **Actions**. Il progetto funziona sotto il percorso del repository perché tutte le risorse di produzione sono risolte relativamente.
 

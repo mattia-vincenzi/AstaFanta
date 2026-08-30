@@ -4,7 +4,7 @@
 
 Prepare the static application for deployment from the repository root through GitHub Pages using the repository's configured GitHub Actions publishing source, and add a consistent feedback system for successful and failed user actions.
 
-GitHub Pages is already configured by the repository owner with **Source: GitHub Actions**. The application must continue to run from any static HTTP server and from a project subpath such as `/AstaFanta/`.
+GitHub Pages is already configured by the repository owner with **Source: GitHub Actions**. The application must continue to run from any static HTTP server and from a project subpath such as `/AstaManager/`.
 
 ## Catalogue loading
 
@@ -58,7 +58,7 @@ Required acknowledgement copy:
 - Scope permissions per job: the build receives `contents: read` and `pages: read`, while deploy receives only `pages: write` and `id-token: write`; deploy through the protected `github-pages` environment.
 - Serialize Pages deployments with a `pages` concurrency group without cancelling an in-progress deployment.
 - Use the official Pages actions and expose the deployed URL from the deployment step.
-- Document GitHub Actions publishing in `README.md` and `README.md.ita`, including a visible link to `https://mattia-vincenzi.github.io/AstaFanta/` in both languages.
+- Document GitHub Actions publishing in `README.md` and `README.md.ita`, including a visible link to `https://mattia-vincenzi.github.io/AstaManager/` in both languages.
 - Keep every production asset and module reference relative.
 
 ## Verification

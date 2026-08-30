@@ -14,7 +14,7 @@
 
 - Do not add runtime or build dependencies.
 - Deploy Pages from GitHub Actions on pushes to `main` and manual dispatch; publish only `index.html`, `.nojekyll`, and `src/`.
-- Link the published application as `https://mattia-vincenzi.github.io/AstaFanta/` from both README versions.
+- Link the published application as `https://mattia-vincenzi.github.io/AstaManager/` from both README versions.
 - Resolve production URLs relative to `import.meta.url`, never `/`.
 - Keep UI copy in Italian and documentation in English, except `README.md.ita`.
 - Use one notification system with `success`, `info`, and `error` tones; never introduce screen-local toast variants.
@@ -50,11 +50,11 @@ test('loads both catalogues relative to the app module under a project subpath',
     return { ok: true, json: async () => [{ id: String(requested.length) }] };
   };
 
-  const result = await loadCatalogues(fetchImpl, 'https://example.github.io/AstaFanta/src/app.js');
+  const result = await loadCatalogues(fetchImpl, 'https://example.github.io/AstaManager/src/app.js');
 
   assert.deepEqual(requested, [
-    'https://example.github.io/AstaFanta/src/players.json',
-    'https://example.github.io/AstaFanta/src/players-classic.json',
+    'https://example.github.io/AstaManager/src/players.json',
+    'https://example.github.io/AstaManager/src/players-classic.json',
   ]);
   assert.equal(result.mantraPlayers.length, 1);
   assert.equal(result.classicPlayers.length, 1);
@@ -624,7 +624,7 @@ Add an English section to `README.md`:
 ```md
 ## Publish with GitHub Pages
 
-The application is available at [mattia-vincenzi.github.io/AstaFanta](https://mattia-vincenzi.github.io/AstaFanta/).
+The application is available at [mattia-vincenzi.github.io/AstaManager](https://mattia-vincenzi.github.io/AstaManager/).
 
 In **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source. The `Deploy to GitHub Pages` workflow runs the unit tests and deploys the static application after every push to `main`; it can also be started manually from the **Actions** tab. The project works under a repository subpath because all production resources are resolved relatively.
 ```
@@ -634,7 +634,7 @@ Add the equivalent Italian section to `README.md.ita`:
 ```md
 ## Pubblicazione con GitHub Pages
 
-L’applicazione è consultabile su [mattia-vincenzi.github.io/AstaFanta](https://mattia-vincenzi.github.io/AstaFanta/).
+L’applicazione è consultabile su [mattia-vincenzi.github.io/AstaManager](https://mattia-vincenzi.github.io/AstaManager/).
 
 In **Settings → Pages → Build and deployment**, seleziona **GitHub Actions** come sorgente. Il workflow `Deploy to GitHub Pages` esegue i test unitari e pubblica l'applicazione statica dopo ogni push su `main`; può anche essere avviato manualmente dalla scheda **Actions**. Il progetto funziona sotto il percorso del repository perché tutte le risorse di produzione sono risolte relativamente.
 ```
@@ -693,10 +693,10 @@ Expected: all E2E tests pass with zero unexpected `pageerror`, console error, or
 Run:
 
 ```bash
-node --input-type=module -e "console.log(new URL('./players.json','https://example.github.io/AstaFanta/src/app.js').pathname)"
+node --input-type=module -e "console.log(new URL('./players.json','https://example.github.io/AstaManager/src/app.js').pathname)"
 ```
 
-Expected: `/AstaFanta/src/players.json`.
+Expected: `/AstaManager/src/players.json`.
 
 - [ ] **Step 4: Run focused browser QA at desktop, mobile, and reduced motion**
 
