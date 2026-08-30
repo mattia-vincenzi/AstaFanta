@@ -5,6 +5,10 @@ export function createNotification(tone, message, id = Date.now()) {
   return { id, tone, message: String(message) };
 }
 
+export function notificationTimeout(tone) {
+  return tone === 'error' ? 7000 : 3200;
+}
+
 export function renderNotification(notification, escapeHtml) {
   if (!notification) return '';
   const role = notification.tone === 'error' ? 'alert' : 'status';

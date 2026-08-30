@@ -1,6 +1,6 @@
 import { loadCatalogues } from './catalogues.js';
 import { addStrategyRole, assignPlayer, createSetup, opponentSummaries, ownRoleSummaries, removeStrategyRole, renameTeam, resizeLeague, roleSummaries, setupRules, strategyWarnings, teamSummary, updateTeamConfiguration, validatePlayer } from './domain.js';
-import { createNotification, renderNotification } from './notifications.js';
+import { createNotification, notificationTimeout, renderNotification } from './notifications.js';
 import { exportState, importState, loadState, saveState } from './storage.js';
 import { assignableRoles, catalogueColumns, catalogueForSetup, filterPlayers, groupRosterByRole, roleCardModel, selectedPlayerLabel, sortRows } from './render.js';
 
@@ -26,7 +26,7 @@ const playerFor = (id) => state.players.find((player) => player.id === id);
 const rules = () => setupRules(state.setup);
 const sortable = (table, key, label) => `<button class="sort" data-sort-table="${table}" data-sort-key="${key}">${label}${tableSort[table]?.key === key ? (tableSort[table].direction === 'asc' ? ' ▲' : ' ▼') : ''}</button>`;
 const roleBadge = (role) => `<span class="role-badge role-${role.toLowerCase()}">${role}</span>`;
-const notificationRegion = () => `<div class="notification-region" aria-live="polite">${renderNotification(notification, escape)}</div>`;
+const notificationRegion = () => `<div class="notification-region">${renderNotification(notification, escape)}</div>`;
 
 function paintNotification() {
   const region = root.querySelector('.notification-region');
@@ -44,7 +44,7 @@ function showNotification(tone, message) {
   clearTimeout(notificationTimer);
   notification = createNotification(tone, message);
   paintNotification();
-  notificationTimer = setTimeout(dismissNotification, tone === 'error' ? 7000 : 3200);
+  notificationTimer = setTimeout(dismissNotification, notificationTimeout(tone));
 }
 
 function header() {
@@ -184,11 +184,11 @@ root.addEventListener('submit', (event) => {
   try {
     if (formId === 'setup-form') { const setup = form.get('setup'); state = createSetup(setup, setup === 'classic' ? classicPlayers : mantraPlayers, { teamCount: Number(form.get('teamCount')), budget: Number(form.get('budget')), ownTeamName: form.get('ownTeamName') }); persist(); render(); showNotification('success', `Asta ${rules().label} creata`); return; }
     if (formId === 'league-size-form') { state = resizeLeague(state, Number(form.get('teamCount'))); persist(); render(); showNotification('success', 'Numero squadre aggiornato'); return; }
-    if (formId === 'sale-form') { const player = playerFor(form.get('playerId')); const teamId = form.get('teamId'); const compatible = assignableRoles(state, player, teamId); const budgetRole = compatible.includes(form.get('budgetRole')) ? form.get('budgetRole') : compatible[0]; const assignment = { playerId: form.get('playerId'), teamId, price: Number(form.get('price')), budgetRole }; const summary = teamSummary(state, teamId); if (summary.remaining - assignment.price < 0 && !confirm('Il budget diventerebbe negativo. Continuare?')) return; state = assignPlayer(state, assignment); feedback = `${player.name} assegnato per ${assignment.price} crediti.`; selectedPlayerId = ''; persist(); render(); showNotification('success', `${player.name} assegnato per ${assignment.price} crediti`); return; }
+    if (formId === 'sale-form') { const player = playerFor(form.get('playerId')); const teamId = form.get('teamId'); const compatible = assignableRoles(state, player, teamId); const budgetRole = compatible.includes(form.get('budgetRole')) ? form.get('budgetRole') : compatible[0]; const assignment = { playerId: form.get('playerId'), teamId, price: Number(form.get('price')), budgetRole }; const summary = teamSummary(state, teamId); if (summary.remaining - assignment.price < 0 && !confirm('Il budget diventerebbe negativo. Continuare?')) return; state = assignPlayer(state, assignment); selectedPlayerId = ''; feedback = ''; persist(); render(); showNotification('success', `${player.name} assegnato per ${assignment.price} crediti`); return; }
     if (event.target.classList.contains('team-name-form')) { state = renameTeam(state, form.get('teamId'), form.get('teamName')); persist(); render(); showNotification('success', 'Nome squadra salvato'); return; }
     if (formId === 'strategy-form') { const ownTeamId = form.get('ownTeamId'); const configured = updateTeamConfiguration(state, ownTeamId, { budget: Number(form.get('budget')), rosterSize: state.setup === 'classic' ? 25 : Number(form.get('rosterSize')) }); const fields = state.setup === 'classic' ? ['min', 'target', 'max'] : ['slots', 'min', 'target', 'max']; const roleBudgets = Object.fromEntries(Object.keys(state.strategy.roleBudgets).map((role) => [role, { ...state.strategy.roleBudgets[role], ...Object.fromEntries(fields.map((field) => [field, Number(form.get(`${role}-${field}`))])) }])); const roleTargets = Object.fromEntries(Object.keys(state.strategy.roleBudgets).map((role) => [role, (state.strategy.roleTargets?.[role] || []).map((band, index) => ({ ...band, label: String(form.get(`target-${role}-${index}-label`) || '').trim() || 'Fascia target', min: Number(form.get(`target-${role}-${index}-min`)) || 0, max: Number(form.get(`target-${role}-${index}-max`)) || 0, players: String(form.get(`target-${role}-${index}-players`) || '') }))])); const strategy = { ...state.strategy, roleBudgets, roleTargets }; state = { ...configured, ownTeamId, strategy }; persist(); render(); showNotification('success', 'Configurazione salvata'); return; }
     if (formId === 'player-form') { const wasEditing = Boolean(editingPlayerId); const player = validatePlayer(state.setup, { id: form.get('id').trim(), name: form.get('name').trim(), team: form.get('team').trim(), roles: form.get('roles').split('/'), qt: Number(form.get('qt')), fvm: Number(form.get('fvm')) }); if (playerFor(player.id) && player.id !== editingPlayerId) throw new Error('ID giocatore già esistente'); state = { ...state, players: editingPlayerId ? state.players.map((entry) => entry.id === editingPlayerId ? player : entry) : [...state.players, player] }; editingPlayerId = ''; persist(); render(); showNotification('success', wasEditing ? 'Giocatore aggiornato' : 'Giocatore salvato'); }
-  } catch (error) { feedback = error.message; showNotification('error', error.message); event.target.querySelector('input:not([type="hidden"]), select, textarea')?.focus(); }
+  } catch (error) { showNotification('error', error.message); }
 });
 
 bootstrap().catch(renderCatalogueLoadError);

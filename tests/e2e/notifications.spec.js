@@ -31,6 +31,27 @@ test('replaces the current notification instead of stacking', async ({ page }) =
   await expect(page.getByRole('status')).toContainText('Nome squadra salvato');
 });
 
+test('announces an exported backup as informational feedback', async ({ page }) => {
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Esporta backup' }).click();
+  await download;
+
+  const notification = page.getByRole('status').filter({ hasText: 'Backup esportato' });
+  await expect(notification).toHaveAttribute('data-tone', 'info');
+});
+
+test('announces an assignment once through the canonical live role', async ({ page }) => {
+  const row = page.locator('[data-action="select-player"]').first();
+  const playerName = await row.locator('td').first().innerText();
+  await row.click();
+  await page.getByLabel('Prezzo').fill('1');
+  await page.getByRole('button', { name: 'Conferma acquisto' }).click();
+
+  await expect(page.getByRole('status')).toContainText(`${playerName} assegnato per 1 crediti`);
+  await expect(page.locator('.notification-region')).not.toHaveAttribute('aria-live');
+  await expect(page.getByText(`${playerName} assegnato per 1 crediti`, { exact: false })).toHaveCount(1);
+});
+
 test('shows invalid backup as a recoverable alert without a native error dialog', async ({ page }) => {
   const dialogs = [];
   page.on('dialog', async (dialog) => {

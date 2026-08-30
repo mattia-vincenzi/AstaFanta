@@ -63,9 +63,11 @@ test('non salva un budget inferiore ai crediti già spesi', async ({ page }) => 
   await addPlayer(page, 'qa-budget', 'Budget QA', 'M');
   await assignPlayer(page, 'Budget QA', 30);
   await page.getByRole('button', { name: 'Strategia' }).click();
-  await page.getByLabel('Budget iniziale').fill('1');
-  await page.getByRole('button', { name: 'Salva configurazione' }).click();
+  const budget = page.getByLabel('Budget iniziale');
+  await budget.fill('1');
+  await budget.press('Enter');
 
   await expect(page.getByRole('alert')).toContainText('Il budget non può essere inferiore ai crediti già spesi');
-  await expect(page.getByLabel('Budget iniziale')).toHaveValue('1');
+  await expect(budget).toHaveValue('1');
+  await expect(budget).toBeFocused();
 });

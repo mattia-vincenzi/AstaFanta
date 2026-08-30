@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createNotification, renderNotification } from '../src/notifications.js';
+import { createNotification, notificationTimeout, renderNotification } from '../src/notifications.js';
 
 const escapeHtml = (value) => String(value).replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 
@@ -17,4 +17,10 @@ test('renders success as a polite status and error as an alert', () => {
 
 test('rejects unsupported tones', () => {
   assert.throws(() => createNotification('warning', 'No'), /Tono notifica non valido/);
+});
+
+test('keeps errors visible longer than success and informational messages', () => {
+  assert.equal(notificationTimeout('success'), 3200);
+  assert.equal(notificationTimeout('info'), 3200);
+  assert.equal(notificationTimeout('error'), 7000);
 });

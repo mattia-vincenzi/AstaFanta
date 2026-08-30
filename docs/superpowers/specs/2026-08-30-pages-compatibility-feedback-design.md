@@ -55,7 +55,7 @@ Required acknowledgement copy:
 - Add `.github/workflows/pages.yml`, triggered by pushes to `main` and by manual dispatch.
 - Run `npm ci` and `npm test` before packaging the site.
 - Publish only `index.html`, `.nojekyll`, and `src/` through a `_site` artifact; repository documentation, tests, example configurations, and development files must not be public site artifacts.
-- Grant only `contents: read`, `pages: write`, and `id-token: write`; deploy through the protected `github-pages` environment.
+- Scope permissions per job: the build receives `contents: read` and `pages: read`, while deploy receives only `pages: write` and `id-token: write`; deploy through the protected `github-pages` environment.
 - Serialize Pages deployments with a `pages` concurrency group without cancelling an in-progress deployment.
 - Use the official Pages actions and expose the deployed URL from the deployment step.
 - Document GitHub Actions publishing in `README.md` and `README.md.ita`, including a visible link to `https://mattia-vincenzi.github.io/AstaFanta/` in both languages.
