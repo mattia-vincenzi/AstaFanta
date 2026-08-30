@@ -1,18 +1,12 @@
-import mantraPlayers from './players.json' with { type: 'json' };
-import classicPlayers from './players-classic.json' with { type: 'json' };
+import { loadCatalogues } from './catalogues.js';
 import { addStrategyRole, assignPlayer, createSetup, opponentSummaries, ownRoleSummaries, removeStrategyRole, renameTeam, resizeLeague, roleSummaries, setupRules, strategyWarnings, teamSummary, updateTeamConfiguration, validatePlayer } from './domain.js';
 import { exportState, importState, loadState, saveState } from './storage.js';
 import { assignableRoles, catalogueColumns, catalogueForSetup, filterPlayers, groupRosterByRole, roleCardModel, selectedPlayerLabel, sortRows } from './render.js';
 
 const root = document.querySelector('#app');
-let state = loadState(localStorage, null);
-if (state) {
-  const compatiblePlayers = catalogueForSetup(state.setup, state.players, classicPlayers);
-  if (compatiblePlayers !== state.players) {
-    state = { ...state, players: compatiblePlayers };
-    saveState(localStorage, state);
-  }
-}
+let mantraPlayers = [];
+let classicPlayers = [];
+let state = null;
 let tab = 'asta';
 let filters = { query: '', role: '', availability: 'free' };
 let selectedPlayerId = '';
@@ -107,10 +101,34 @@ function render() {
     }
   }
 }
+
+async function bootstrap() {
+  document.title = 'Caricamento cataloghi';
+  root.innerHTML = '<main class="setup-screen"><p role="status">Caricamento cataloghi…</p></main>';
+  const catalogues = await loadCatalogues();
+  mantraPlayers = catalogues.mantraPlayers;
+  classicPlayers = catalogues.classicPlayers;
+  state = loadState(localStorage, null);
+  if (state) {
+    const compatiblePlayers = catalogueForSetup(state.setup, state.players, classicPlayers);
+    if (compatiblePlayers !== state.players) {
+      state = { ...state, players: compatiblePlayers };
+      saveState(localStorage, state);
+    }
+  }
+  render();
+}
+
+function renderCatalogueLoadError() {
+  document.title = 'Cataloghi non disponibili';
+  root.innerHTML = '<main class="setup-screen"><section class="panel load-error" role="alert"><h1>Impossibile caricare i cataloghi.</h1><p>Controlla la connessione e riprova.</p><button data-action="retry-catalogues">Riprova</button></section></main>';
+}
+
 function selectPlayer(id) { selectedPlayerId = id; feedback = `${playerFor(id)?.name} selezionato. Inserisci prezzo e squadra.`; render(); }
 
 root.addEventListener('click', (event) => {
   const target = event.target; const playerRow = target.closest?.('[data-action="select-player"]');
+  if (target.dataset.action === 'retry-catalogues') { bootstrap().catch(renderCatalogueLoadError); return; }
   if (playerRow) { selectPlayer(playerRow.dataset.id); return; }
   if (target.dataset.sortTable) { const current = tableSort[target.dataset.sortTable]; const direction = current.key === target.dataset.sortKey && current.direction === 'asc' ? 'desc' : 'asc'; tableSort = { ...tableSort, [target.dataset.sortTable]: { key: target.dataset.sortKey, direction } }; render(); return; }
   if (target.dataset.tab) { tab = target.dataset.tab; render(); return; }
@@ -149,4 +167,4 @@ root.addEventListener('submit', (event) => {
   } catch (error) { feedback = error.message; alert(error.message); render(); }
 });
 
-render();
+bootstrap().catch(renderCatalogueLoadError);
