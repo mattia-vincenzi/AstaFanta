@@ -18,6 +18,22 @@ test.beforeEach(async ({ page }) => {
 
 test.afterEach(async ({ page }) => expect(browserErrors.get(page)).toEqual([]));
 
+test('mostra pressione tattile e la rimuove con movimento ridotto', async ({ page }) => {
+  const button = page.getByRole('button', { name: 'Asta live' });
+  const box = await button.boundingBox();
+  if (!box) throw new Error('Il pulsante iniziale non ha dimensioni');
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  expect(await button.evaluate((element) => getComputedStyle(element).transform)).not.toBe('none');
+  await page.mouse.up();
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.mouse.down();
+  expect(await button.evaluate((element) => getComputedStyle(element).transform)).toBe('none');
+  await page.mouse.up();
+});
+
 test('annuncia il limite del catalogo e lo stato della riga selezionata', async ({ page }) => {
   await expect(page.getByText(/120 di \d+ disponibili/)).toBeVisible();
   const row = page.locator('[data-action="select-player"]').first();

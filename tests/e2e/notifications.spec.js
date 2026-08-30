@@ -48,3 +48,16 @@ test('shows invalid backup as a recoverable alert without a native error dialog'
   expect(dialogs).toEqual([]);
   await expect(page.getByRole('heading', { name: 'Asta Mantra' })).toBeVisible();
 });
+
+test('keeps the notification inside a 390px viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Strategia' }).click();
+  await page.getByRole('button', { name: 'Salva configurazione' }).click();
+
+  const notification = page.locator('.notification');
+  const region = page.locator('.notification-region');
+  await expect(region).toHaveCSS('position', 'fixed');
+  const box = await notification.boundingBox();
+  expect(box?.x).toBeGreaterThanOrEqual(12);
+  expect((box?.x || 0) + (box?.width || 0)).toBeLessThanOrEqual(378);
+});
