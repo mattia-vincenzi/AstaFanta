@@ -51,7 +51,8 @@ test('rifiuta uno schema invalido e mantiene lo stato corrente', async ({ page }
     buffer: Buffer.from(JSON.stringify({ version: 1, state: {} })),
   });
 
-  await expect.poll(() => dialogs.get(page)).toContain('Backup non valido');
+  await expect(page.getByRole('alert')).toContainText('Backup non valido');
+  expect(dialogs.get(page)).toEqual([]);
   await expect(page.getByRole('heading', { name: 'Asta Mantra' })).toBeVisible();
   await expect(page.getByText('La mia squadra · 1000 crediti · 28 slot')).toBeVisible();
 });

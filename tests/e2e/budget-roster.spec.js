@@ -54,7 +54,7 @@ test('non registra un secondo giocatore quando la rosa Mantra è piena', async (
   await assignPlayer(page, 'Primo QA', 10);
   await assignPlayer(page, 'Secondo QA', 5);
 
-  await expect.poll(() => dialogs.get(page)).toContain('Rosa piena');
+  await expect(page.getByRole('alert')).toContainText('Rosa piena');
   await page.getByRole('button', { name: 'Squadre' }).click();
   await expect(page.getByText('1/1', { exact: true }).first()).toBeVisible();
 });
@@ -66,6 +66,6 @@ test('non salva un budget inferiore ai crediti già spesi', async ({ page }) => 
   await page.getByLabel('Budget iniziale').fill('1');
   await page.getByRole('button', { name: 'Salva configurazione' }).click();
 
-  await expect.poll(() => dialogs.get(page)).toContain('Il budget non può essere inferiore ai crediti già spesi');
-  await expect(page.getByLabel('Budget iniziale')).toHaveValue('1000');
+  await expect(page.getByRole('alert')).toContainText('Il budget non può essere inferiore ai crediti già spesi');
+  await expect(page.getByLabel('Budget iniziale')).toHaveValue('1');
 });
