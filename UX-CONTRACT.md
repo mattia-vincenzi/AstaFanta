@@ -8,6 +8,7 @@
 | Select/Listbox | Native HTML select | This contract | Platform-managed popup | Playwright Chromium suite |
 | Form | Delegated submit and domain validation | `src/domain.js` | Setup, sale, strategy, catalogue | Unit tests and catalogue E2E tests |
 | CRUD | Player catalogue | This contract | Unrestricted create, edit, and delete | `tests/e2e/catalogue.spec.js` |
+| Notifications | Global notification region in `src/app.js` | `src/notifications.js` | Success, information, error | Unit and notification E2E tests |
 
 ## State and modes
 
@@ -22,6 +23,8 @@
 - The suggested role is compatible with the player; in Classic, it also accounts for the selected team's slots.
 - A full department blocks confirmation and displays the reason before submission.
 - Each action produces exactly one state transition and an accessible confirmation.
+- Successful and informational outcomes use a polite `status`; recoverable errors use `alert`.
+- Only one notification is visible at a time. It can be dismissed from the keyboard and never clears editable form values.
 
 ## Teams and strategy
 
@@ -40,3 +43,4 @@
 - Deleting a player and starting a new auction require confirmation.
 - Assigned players cannot be deleted from the catalogue.
 - Quota, role, missing-data, and invalid-backup errors remain recoverable without losing the current state.
+- Native dialogs are reserved for confirmations; operational errors use the global notification region.

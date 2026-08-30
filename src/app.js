@@ -1,5 +1,6 @@
 import { loadCatalogues } from './catalogues.js';
 import { addStrategyRole, assignPlayer, createSetup, opponentSummaries, ownRoleSummaries, removeStrategyRole, renameTeam, resizeLeague, roleSummaries, setupRules, strategyWarnings, teamSummary, updateTeamConfiguration, validatePlayer } from './domain.js';
+import { createNotification, renderNotification } from './notifications.js';
 import { exportState, importState, loadState, saveState } from './storage.js';
 import { assignableRoles, catalogueColumns, catalogueForSetup, filterPlayers, groupRosterByRole, roleCardModel, selectedPlayerLabel, sortRows } from './render.js';
 
@@ -14,6 +15,8 @@ let selectedTeamId = '';
 let editingPlayerId = '';
 let tableSort = { opponents: { key: 'remaining', direction: 'desc' }, catalogue: { key: 'name', direction: 'asc' } };
 let feedback = '';
+let notification = null;
+let notificationTimer = null;
 
 const escape = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const persist = () => saveState(localStorage, state);
@@ -23,6 +26,26 @@ const playerFor = (id) => state.players.find((player) => player.id === id);
 const rules = () => setupRules(state.setup);
 const sortable = (table, key, label) => `<button class="sort" data-sort-table="${table}" data-sort-key="${key}">${label}${tableSort[table]?.key === key ? (tableSort[table].direction === 'asc' ? ' ▲' : ' ▼') : ''}</button>`;
 const roleBadge = (role) => `<span class="role-badge role-${role.toLowerCase()}">${role}</span>`;
+const notificationRegion = () => `<div class="notification-region" aria-live="polite">${renderNotification(notification, escape)}</div>`;
+
+function paintNotification() {
+  const region = root.querySelector('.notification-region');
+  if (region) region.innerHTML = renderNotification(notification, escape);
+}
+
+function dismissNotification() {
+  clearTimeout(notificationTimer);
+  notificationTimer = null;
+  notification = null;
+  paintNotification();
+}
+
+function showNotification(tone, message) {
+  clearTimeout(notificationTimer);
+  notification = createNotification(tone, message);
+  paintNotification();
+  notificationTimer = setTimeout(dismissNotification, tone === 'error' ? 7000 : 3200);
+}
 
 function header() {
   const summary = teamSummary(state, state.ownTeamId);
@@ -92,7 +115,7 @@ function catalogue() {
 
 function render() {
   document.title = state ? `Asta ${rules().label}` : 'Tool asta fantacalcio';
-  root.innerHTML = state ? `${header()}${navigation()}<main>${tab === 'asta' ? auction() : tab === 'squadre' ? teams() : tab === 'strategia' ? strategy() : catalogue()}</main>` : setupScreen();
+  root.innerHTML = `${notificationRegion()}${state ? `${header()}${navigation()}<main>${tab === 'asta' ? auction() : tab === 'squadre' ? teams() : tab === 'strategia' ? strategy() : catalogue()}</main>` : setupScreen()}`;
   if (state && tab === 'strategia') {
     const teamNameInput = root.querySelector('#strategy-form input[name="teamName"]');
     if (teamNameInput) {
@@ -129,6 +152,7 @@ function selectPlayer(id) { selectedPlayerId = id; feedback = `${playerFor(id)?.
 root.addEventListener('click', (event) => {
   const target = event.target; const playerRow = target.closest?.('[data-action="select-player"]');
   if (target.dataset.action === 'retry-catalogues') { bootstrap().catch(renderCatalogueLoadError); return; }
+  if (target.dataset.action === 'dismiss-notification') { dismissNotification(); return; }
   if (playerRow) { selectPlayer(playerRow.dataset.id); return; }
   if (target.dataset.sortTable) { const current = tableSort[target.dataset.sortTable]; const direction = current.key === target.dataset.sortKey && current.direction === 'asc' ? 'desc' : 'asc'; tableSort = { ...tableSort, [target.dataset.sortTable]: { key: target.dataset.sortKey, direction } }; render(); return; }
   if (target.dataset.tab) { tab = target.dataset.tab; render(); return; }
