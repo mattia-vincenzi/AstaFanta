@@ -46,6 +46,12 @@ Open [http://localhost:8080](http://localhost:8080) and choose a game mode.
 
 > Do not open `index.html` directly: the browser may block the JSON catalogues from loading.
 
+## Publish with GitHub Pages
+
+The application is available at [mattia-vincenzi.github.io/AstaFanta](https://mattia-vincenzi.github.io/AstaFanta/).
+
+In **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source. The `Deploy to GitHub Pages` workflow runs the unit tests and deploys the static application after every push to `main`; it can also be started manually from the **Actions** tab. The project works under a repository subpath because all production resources are resolved relatively.
+
 ## Modes
 
 | Mantra | Classic |
