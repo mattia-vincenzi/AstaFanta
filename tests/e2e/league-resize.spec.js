@@ -45,7 +45,8 @@ test('rifiuta atomicamente la rimozione di una squadra con acquisti', async ({ p
   await page.getByLabel('Numero squadre').fill('2');
   await page.getByRole('button', { name: 'Applica' }).click();
 
-  await expect.poll(() => dialogs.get(page)).toContain('Non puoi rimuovere squadre con acquisti');
-  await expect(page.getByLabel('Numero squadre')).toHaveValue('3');
+  await expect(page.getByRole('alert')).toContainText('Non puoi rimuovere squadre con acquisti');
+  expect(dialogs.get(page)).toEqual([]);
+  await expect(page.getByLabel('Numero squadre')).toHaveValue('2');
   await expect(page.getByRole('heading', { name: 'Squadra 3' })).toBeVisible();
 });
