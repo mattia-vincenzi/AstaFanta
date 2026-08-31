@@ -5,6 +5,7 @@
 | Capability | Canonical owner | Source of truth | Allowed variants | Verification |
 |---|---|---|---|---|
 | Table Selection | Selectable rows in `src/app.js` | This contract | Mouse, Enter, Space | `tests/e2e/accessibility-responsive.spec.js` |
+| Table Sorting | Shared sortable headers and DOM sorter in `src/app.js` | This contract | Text and numeric data columns; action columns excluded | `tests/e2e/table-sorting.spec.js` |
 | Select/Listbox | Native HTML select | This contract | Platform-managed popup | Playwright Chromium suite |
 | Form | Delegated submit and domain validation | `src/domain.js` | Setup, sale, strategy, catalogue | Unit tests and catalogue E2E tests |
 | CRUD | Player catalogue | This contract | Unrestricted create, edit, and delete | `tests/e2e/catalogue.spec.js` |
@@ -15,6 +16,13 @@
 - When there is no saved state, the Mantra/Classic choice is displayed.
 - The mode remains immutable throughout the auction; “New auction” requires confirmation and clears local state.
 - Importing, refreshing, and exporting preserve the mode, modified catalogue, teams, and assignments.
+
+## Supported browsers and devices
+
+- Support the latest two releases of Chrome, Edge, Firefox, and Safari on their maintained desktop operating systems.
+- Support current Chrome Android and Safari iOS layouts, touch targets, display safe areas, and form controls.
+- Automated coverage uses Chromium, Firefox, WebKit, Pixel 7, and iPhone 15 Playwright profiles; browser-owned native controls may retain platform-specific appearance.
+- Every data-table column is sortable in both directions. Sorting editable strategy rows must preserve unsaved input values; action-only columns remain static.
 
 ## Live auction
 

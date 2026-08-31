@@ -18,7 +18,7 @@
 .role-card.budget-over .meter i{background:var(--danger)}
 .role-card.budget-over>span:not(.role-badge),.role-card.budget-over small{color:#852323}
 .strategy-top{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
-@media(max-width:620px){button,.button{min-width:44px;min-height:44px}}
+@media(max-width:620px){button,.button{min-width:45px;min-height:45px}}
 
 /* Let the opponents table use the full dashboard panel instead of stopping at the compact cap. */
 .opponents{display:flex;flex-direction:column;min-height:0}
@@ -38,3 +38,15 @@
 @keyframes notification-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @media(max-width:620px){.notification-region{top:12px;right:12px;left:12px;width:auto}}
 @media(prefers-reduced-motion:reduce){button:not(:disabled):active,.button:active{transform:none}.notification{animation:none}}
+
+/* Shared sortable table headers */
+.table-wrap th.sortable-header{padding:0}
+.sort{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:34px;padding:6px 9px;text-align:left;text-decoration:none}
+.sort:hover{text-decoration:none}
+.sort-indicator{color:var(--brand);font-size:.72rem;line-height:1}
+th[aria-sort="none"] .sort-indicator{color:#687787}
+@media(max-width:620px){.sort{min-height:45px}}
+
+/* Respect display cut-outs while preserving the established page spacing. */
+#app{padding-top:max(28px,env(safe-area-inset-top));padding-right:max(28px,env(safe-area-inset-right));padding-bottom:max(28px,env(safe-area-inset-bottom));padding-left:max(28px,env(safe-area-inset-left))}
+@media(max-width:620px){#app{padding-top:max(16px,env(safe-area-inset-top));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(16px,env(safe-area-inset-bottom));padding-left:max(16px,env(safe-area-inset-left))}}
